@@ -32,6 +32,7 @@ dependencies {
     implementation "com.android.volley:volley:$volleyVersion"
     implementation 'com.upokecenter:cbor:4.5.2'
     implementation 'com.google.guava:guava:31.1-android'
+    implementation 'com.google.android.gms:play-services-nearby:19.2.0'
 }
 
 android {

@@ -149,23 +149,23 @@ public class Fido2PrivilegedApiClient extends GoogleApi<Api.ApiOptions.NoOptions
      * Creates a Task with {@link Boolean}, which check if a user verifying platform authenticator is available on the
      * device.
      */
-    public Task<Boolean> isUserVerifyingPlatformAuthenticatorAvailable() {
-        return scheduleTask((PendingGoogleApiCall<Boolean, Fido2PrivilegedGmsClient>) (client, completionSource) -> {
-            try {
-                client.isUserVerifyingPlatformAuthenticatorAvailable(new IBooleanCallback.Stub() {
-                    @Override
-                    public void onBoolean(boolean value) throws RemoteException {
-                        completionSource.setResult(value);
-                    }
-
-                    @Override
-                    public void onError(Status status) throws RemoteException {
-                        completionSource.setException(new ApiException(status));
-                    }
-                });
-            } catch (Exception e) {
-                completionSource.setException(e);
-            }
-        });
-    }
+//    public Task<Boolean> isUserVerifyingPlatformAuthenticatorAvailable() {
+//        return scheduleTask((PendingGoogleApiCall<Boolean, Fido2PrivilegedGmsClient>) (client, completionSource) -> {
+//            try {
+//                client.isUserVerifyingPlatformAuthenticatorAvailable(new IBooleanCallback.Stub() {
+//                    @Override
+//                    public void onBoolean(boolean value) throws RemoteException {
+//                        completionSource.setResult(value);
+//                    }
+//
+//                    @Override
+//                    public void onError(Status status) throws RemoteException {
+//                        completionSource.setException(new ApiException(status));
+//                    }
+//                });
+//            } catch (Exception e) {
+//                completionSource.setException(e);
+//            }
+//        });
+//    }
 }
