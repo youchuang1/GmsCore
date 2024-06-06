@@ -5,5 +5,4 @@ import com.google.android.gms.common.api.Status;
 interface IBooleanCallback {
     void onBoolean(boolean value) = 0;
     void onError(in Status status) = 1;
-    void onResult(boolean result) = 2;
 }
