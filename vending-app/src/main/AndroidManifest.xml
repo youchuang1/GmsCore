@@ -138,7 +138,7 @@
             android:exported="false" />
 
         <activity
-            android:name="org.microg.vending.billing.PurchaseActivity"
+            android:name="org.microg.vending.billing.lightpurchase.LightPurchaseFlowActivity"
             android:exported="true"
             android:theme="@style/Theme.Translucent"
             android:process=":ui">
