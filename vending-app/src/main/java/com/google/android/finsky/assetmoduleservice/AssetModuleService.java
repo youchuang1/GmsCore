@@ -52,21 +52,24 @@ public class AssetModuleService extends Service {
         }
 
         @Override
-        public void keepAlive(String packageName, Bundle bundle, IAssetModuleServiceCallback callback) {
+        public void keepAlive(String packageName, Bundle bundle, IAssetModuleServiceCallback callback) throws RemoteException {
             Log.d(TAG, "Method (keepAlive) called but not implement by packageName -> " + packageName);
         }
 
         @Override
-        public void getChunkFileDescriptor(String packageName, Bundle bundle, Bundle bundle2, IAssetModuleServiceCallback callback) {
+        public void getChunkFileDescriptor(String packageName, Bundle bundle, Bundle bundle2, IAssetModuleServiceCallback callback) throws RemoteException {
             Log.d(TAG, "Method (getChunkFileDescriptor) called but not implement by packageName -> " + packageName);
         }
 
         @Override
         public void requestDownloadInfo(String packageName, List<Bundle> list, Bundle bundle, IAssetModuleServiceCallback callback) throws RemoteException {
             Log.d(TAG, "Method (requestDownloadInfo) called by packageName -> " + packageName);
-            Bundle result = new Bundle();
-            result.putStringArrayList("pack_names", new ArrayList<>());
-            callback.onRequestDownloadInfo(result, result);
+//            Bundle result = new Bundle();
+//            result.putStringArrayList("pack_names", new ArrayList<>());
+//            callback.onRequestDownloadInfo(result, result);
+            Bundle result2 = new Bundle();
+            result2.putInt("error_code",-2);
+            callback.onError(result2);
         }
 
         @Override
