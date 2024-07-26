@@ -27,7 +27,15 @@ public class AssetModuleService extends Service {
         assetModuleInfo = new AssetModuleInfo(getPackageManager(), new AssetModuleController(), new AuthenticationHandler(), new OwnershipChecker());
     }
 
+
+
+
+
     private final IAssetModuleService.Stub service = new IAssetModuleService.Stub() {
+
+
+
+
 
         @Override
         public void startDownload(String packageName, List<Bundle> list, Bundle bundle, IAssetModuleServiceCallback callback) throws RemoteException {
