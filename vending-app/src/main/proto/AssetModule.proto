@@ -148,4 +148,30 @@ message IntermediateIntegrityResponseWrapperExtend {
     optional AssetModuleDeliveryResponse assetModuleDeliveryResponse = 151; // 可选 AssetModuleDeliveryResponse 字段
   }
   optional IntermediateIntegrityResponseWrapper intermediateIntegrityResponseWrapper = 1; // 可选 IntermediateIntegrityResponseWrapper 字段
+
+  optional message5 x = 5;
+  optional message9 y = 9;
+
+
+  message message5 {
+    uint32 field1 = 1;
+  }
+
+  message message9 {
+    uint32 field1 = 1;
+    optional nestedMessage nested = 19;
+
+    message nestedMessage {
+      optional field11 s = 1;
+      uint32 field4 = 2;
+      uint32 field5 = 4;
+      string field6 = 5;
+    }
+    message field11{
+      uint64 a = 1;
+      fixed32 b = 2;
+      fixed32 c = 3;
+    }
+
+  }
 }
