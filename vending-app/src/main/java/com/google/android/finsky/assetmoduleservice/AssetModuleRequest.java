@@ -156,8 +156,6 @@ public final class AssetModuleRequest extends Request<byte[]> {
         }
         headers.put("Accept-Language", "zh-CN");
         headers.put("Content-Type", "application/x-protobuf");
-        headers.put("Accept-Encoding", "gzip, deflate, br");
-        headers.put("Priority", "u=1, i");
         return headers;
     }
 

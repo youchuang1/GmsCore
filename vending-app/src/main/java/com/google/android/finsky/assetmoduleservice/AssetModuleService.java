@@ -86,47 +86,6 @@ public class AssetModuleService extends Service {
             } else {
                 Log.d(TAG, "Method (getSessionStates) called by packageName -> " + packageName);
 
-                AssetModuleDeliveryRequest requestPayload = new AssetModuleDeliveryRequest.Builder()
-                        .pkgname("com.gameloft.android.ANMP.GloftDYHM")
-                        .c(new Bbvz.Builder()
-                                .oneofField1(940031)
-                                .d(3)
-                                .build())
-                        .playCoreVersion(20201)
-                        .supportedCompressionFormats(Arrays.asList(Bdpo.UNKNOWN_SEARCH_TRAFFIC_SOURCE, Bdpo.BOOKS_HOME_PAGE))
-                        .supportedPatchFormats(Arrays.asList(Bdpp.CALLER_APP_REQUEST, Bdpp.CALLER_APP_DEBUGGABLE))
-                        .requestedAssetModules(Arrays.asList(new Bcmf.Builder()
-                                .b("dlc_hd")
-                                .c(7738135720018340206L)
-                                .build()))
-                        .isInstantApp(false)
-                        .build();
-
-
-
-                Log.d(TAG, String.valueOf(requestPayload));
-
-
-                AssetModuleRequest request = new AssetModuleRequest(context,"https://play-fe.googleapis.com/fdfe/assetModuleDelivery",
-                        requestPayload,user, new AssetModuleRequest.VolleyCallback() {
-                    @Override
-                    public void onSuccess(byte[] result) {
-                        try {
-                            IntermediateIntegrityResponseWrapperExtend response = IntermediateIntegrityResponseWrapperExtend.ADAPTER.decode(result);
-                            Log.d("Response", response.toString());
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-
-                    @Override
-                    public void onError(String error) {
-                        Log.e("Error", error);
-                    }
-                });
-
-                // 将请求添加到请求队列
-                MySingleton.getInstance(context).addToRequestQueue(request);
             }
         }
 
@@ -208,50 +167,46 @@ public class AssetModuleService extends Service {
             } else {
                 Log.d(TAG, packageName + "----" + playcore_version_code + "----");
 
-                // 创建 bundle1 对象并填充数据
-                Bundle bundle1 = new Bundle();
-                bundle1.putStringArrayList("pack_names", new ArrayList<>(Arrays.asList("dlc_hd", "init_pack")));
-                bundle1.putLong("total_bytes_to_download", 1240242325L);
-                bundle1.putInt("app_version_code", 940031);
-                bundle1.putInt("session_id", 2);
-                bundle1.putInt("status", 8);
-                bundle1.putInt("error_code", 0);
-                bundle1.putLong("bytes_downloaded", 0L);
+                AssetModuleDeliveryRequest requestPayload = new AssetModuleDeliveryRequest.Builder()
+                        .pkgname("com.gameloft.android.ANMP.GloftDYHM")
+                        .c(new Bbvz.Builder()
+                                .oneofField1(940031)
+                                .d(3)
+                                .build())
+                        .playCoreVersion(20201)
+                        .supportedCompressionFormats(Arrays.asList(Bdpo.UNKNOWN_SEARCH_TRAFFIC_SOURCE, Bdpo.BOOKS_HOME_PAGE))
+                        .supportedPatchFormats(Arrays.asList(Bdpp.CALLER_APP_REQUEST, Bdpp.CALLER_APP_DEBUGGABLE))
+                        .requestedAssetModules(Arrays.asList(new Bcmf.Builder()
+                                .b("dlc_hd")
+                                .c(7738135720018340206L)
+                                .build()))
+                        .isInstantApp(false)
+                        .build();
 
-                bundle1.putLong("total_bytes_to_download:init_pack", 720672983L);
-                bundle1.putLong("total_bytes_to_download:dlc_hd", 519569342L);
-                bundle1.putLong("bytes_downloaded:init_pack", 0L);
-                bundle1.putLong("bytes_downloaded:dlc_hd", 0L);
-                bundle1.putLong("pack_version:init_pack", 940031L);
-                bundle1.putLong("pack_version:dlc_hd", 940031L);
-                bundle1.putLong("pack_base_version:init_pack", 0L);
-                bundle1.putLong("pack_base_version:dlc_hd", 0L);
-                bundle1.putLong("session_id:init_pack", 8L);
-                bundle1.putLong("session_id:dlc_hd", 8L);
 
-                // 创建 bundle2 对象并填充数据
-                Bundle bundle2 = new Bundle();
-                bundle2.putStringArrayList("pack_names", new ArrayList<>(Arrays.asList("dlc_hd", "init_pack")));
-                bundle2.putLong("total_bytes_to_download", 1240242325L);
-                bundle2.putInt("app_version_code", 940031);
-                bundle2.putInt("session_id", 2);
-                bundle2.putInt("status", 8);
-                bundle2.putInt("error_code", 0);
-                bundle2.putLong("bytes_downloaded", 0L);
 
-                bundle2.putLong("total_bytes_to_download:init_pack", 720672983L);
-                bundle2.putLong("total_bytes_to_download:dlc_hd", 519569342L);
-                bundle2.putLong("bytes_downloaded:init_pack", 0L);
-                bundle2.putLong("bytes_downloaded:dlc_hd", 0L);
-                bundle2.putLong("pack_version:init_pack", 940031L);
-                bundle2.putLong("pack_version:dlc_hd", 940031L);
-                bundle2.putLong("pack_base_version:init_pack", 0L);
-                bundle2.putLong("pack_base_version:dlc_hd", 0L);
-                bundle2.putLong("session_id:init_pack", 8L);
-                bundle2.putLong("session_id:dlc_hd", 8L);
+                Log.d(TAG, String.valueOf(requestPayload));
 
-                // 返回数据给回调
-                callback.onRequestDownloadInfo(bundle1, bundle2);
+
+                AssetModuleRequest request = new AssetModuleRequest(context,"https://play-fe.googleapis.com/fdfe/assetModuleDelivery",
+                        requestPayload,user, new AssetModuleRequest.VolleyCallback() {
+                    @Override
+                    public void onSuccess(byte[] result) {
+                        try {
+                            IntermediateIntegrityResponseWrapperExtend response = IntermediateIntegrityResponseWrapperExtend.ADAPTER.decode(result);
+                            Log.d("Response", response.toString());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        Log.e("Error", error);
+                    }
+                });
+
+                MySingleton.getInstance(context).addToRequestQueue(request);
             }
         }
 
