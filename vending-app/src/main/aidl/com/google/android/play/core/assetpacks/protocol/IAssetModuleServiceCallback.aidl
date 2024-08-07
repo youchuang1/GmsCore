@@ -10,9 +10,9 @@ interface IAssetModuleServiceCallback {
     void onCancelDownload(int status) = 2;
     void onGetSession(int status) = 3;
     void onGetSessionStates(in List<Bundle> list) = 4;
-    void onNotifyChunkTransferred(in Bundle bundle) = 5;
+    void onNotifyChunkTransferred(in Bundle bundle,in Bundle bundle2) = 5;
     void onError(in Bundle bundle) = 6;
-    void onNotifyModuleCompleted(in Bundle bundle) = 7;
+    void onNotifyModuleCompleted(in Bundle bundle,in Bundle bundle2) = 7;
     void onNotifySessionFailed(in Bundle bundle) = 9;
     void onKeepAlive(in Bundle bundle, in Bundle bundle2) = 10;
     void onGetChunkFileDescriptor(in Bundle bundle, in Bundle bundle2) = 11;

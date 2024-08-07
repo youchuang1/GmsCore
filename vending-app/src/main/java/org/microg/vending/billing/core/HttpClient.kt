@@ -51,16 +51,18 @@ class HttpClient(context: Context) {
 
 
     suspend fun <I : Message<I, *>, O> post(
-        url: String,
-        headers: Map<String, String> = emptyMap(),
-        params: Map<String, String> = emptyMap(),
-        payload: I,
-        adapter: ProtoAdapter<O>,
-        cache: Boolean = false
+            url: String,
+            headers: Map<String, String> = emptyMap(),
+            params: Map<String, String>? = emptyMap(),
+            payload: I,
+            adapter: ProtoAdapter<O>,
+            cache: Boolean = false
     ): O = suspendCoroutine { continuation ->
         val uriBuilder = Uri.parse(url).buildUpon()
-        params.forEach {
-            uriBuilder.appendQueryParameter(it.key, it.value)
+        if (params != null) {
+            params.forEach {
+                uriBuilder.appendQueryParameter(it.key, it.value)
+            }
         }
         requestQueue.add(object : Request<O>(Method.POST, uriBuilder.build().toString(), null) {
             override fun parseNetworkResponse(response: NetworkResponse): Response<O> {
