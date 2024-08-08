@@ -182,14 +182,13 @@ public class AssetModuleService extends Service {
                 errorBundle.putInt("error_code", playcore_version_code);
                 callback.onError(errorBundle);
             } else {
-                Log.d(TAG, packageName + "----" + playcore_version_code + "----");
+
                 String versionCode = getAppVersionCode(packageName);
 
-                if (versionCode != null) {
+                if (versionCode == null) {
                     Log.d(TAG,versionCode);
                 }
 
-                // 构建请求负载的构建器
                 AssetModuleDeliveryRequest.Builder requestBuilder = new AssetModuleDeliveryRequest.Builder()
                         .pkgname(packageName)
                         .c(new Bbvz.Builder()
@@ -201,18 +200,18 @@ public class AssetModuleService extends Service {
                         .supportedPatchFormats(Arrays.asList(Bdpp.CALLER_APP_REQUEST, Bdpp.CALLER_APP_DEBUGGABLE))
                         .isInstantApp(false);
 
-                // 循环处理list，获取每个bundle的module_name值，并添加到请求模块列表中
+                List<Bcmf> assetModules = new ArrayList<>();
                 for (Bundle b : list) {
                     String moduleName = b.getString("module_name");
                     if (moduleName != null) {
-                        requestBuilder.requestedAssetModules(Arrays.asList(new Bcmf.Builder().b(moduleName).build()));
+                        assetModules.add(new Bcmf.Builder().b(moduleName).build());
                     }
                 }
 
-                // 构建最终的请求负载
+                requestBuilder.requestedAssetModules(assetModules);
+
                 AssetModuleDeliveryRequest requestPayload = requestBuilder.build();
 
-                // 打印请求负载以调试
                 Log.d(TAG, String.valueOf(requestPayload));
 
 
@@ -234,7 +233,7 @@ public class AssetModuleService extends Service {
                     }
                 });
 
-                MySingleton.getInstance(context).addToRequestQueue(request);
+                NetworkRequestManager.getInstance(context).addToRequestQueue(request);
             }
         }
 

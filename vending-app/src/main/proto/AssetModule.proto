@@ -7,147 +7,140 @@ import "Timestamp.proto";
 
 
 
-// 资源模块交付请求消息
 message AssetModuleDeliveryRequest {
-  optional string pkgname = 1; // 包名
-  optional Bbvz c = 2; // bbvz 类型
-  optional uint32 playCoreVersion = 3; // Play 核心版本
-  repeated Bdpo supportedCompressionFormats = 4; // 支持的压缩格式
-  repeated Bdpp supportedPatchFormats = 5; // 支持的补丁格式
-  repeated Bcmf requestedAssetModules = 6; // 请求的资源模块
-  optional bool isInstantApp = 8; // 是否为即时应用
+  optional string pkgname = 1;
+  optional Bbvz c = 2;
+  optional uint32 playCoreVersion = 3;
+  repeated Bdpo supportedCompressionFormats = 4;
+  repeated Bdpp supportedPatchFormats = 5;
+  repeated Bcmf requestedAssetModules = 6;
+  optional bool isInstantApp = 8;
 }
 
-// Bbvz 消息，包含 oneof 字段
 message Bbvz {
   oneof c {
     int32 oneofField1 = 1;
     string oneofField3 = 3;
   }
-  optional int32 d = 2; // 可选字段 d
+  optional int32 d = 2;
 }
 
 // Bcmf 消息
 message Bcmf {
-  optional string b = 1; // 可选字符串 b
-  optional int64 c = 2; // 可选 int64 c
+  optional string b = 1;
+  optional int64 c = 2;
 }
 
-// Bdpp 枚举，表示安全检查类型
 enum Bdpp {
-  UNKNOWN_SECURITY_CHECK_TYPE = 0; // 未知安全检查类型
-  CALLER_APP_REQUEST = 1; // 调用者应用请求
-  CALLER_APP_DEBUGGABLE = 2; // 调用者应用可调试
-  CALLER_APP_INTENT_HANDLING_PACKAGE_MISSING = 3; // 调用者应用意图处理包缺失
-  CALLER_APP_INSTALLER_PACKAGE_NAME_UNKNOWN = 4; // 调用者应用安装包名未知
-  CALLER_APP_INSTALLER_PACKAGE_NAME_3P = 5; // 调用者应用安装包名为第三方
-  CALLER_APP_INSTALLED_CERTIFICATE_MISSING = 6; // 调用者应用安装证书缺失
-  CALLER_APP_CERTIFICATE_UNMATCHED = 7; // 调用者应用证书不匹配
+  UNKNOWN_SECURITY_CHECK_TYPE = 0;
+  CALLER_APP_REQUEST = 1;
+  CALLER_APP_DEBUGGABLE = 2;
+  CALLER_APP_INTENT_HANDLING_PACKAGE_MISSING = 3;
+  CALLER_APP_INSTALLER_PACKAGE_NAME_UNKNOWN = 4;
+  CALLER_APP_INSTALLER_PACKAGE_NAME_3P = 5;
+  CALLER_APP_INSTALLED_CERTIFICATE_MISSING = 6;
+  CALLER_APP_CERTIFICATE_UNMATCHED = 7;
 }
 
-// Bdpo 枚举，表示搜索流量来源
 enum Bdpo {
-  UNKNOWN_SEARCH_TRAFFIC_SOURCE = 0; // 未知搜索流量来源
-  GAMES_HOME_PAGE = 1; // 游戏主页
-  APPS_HOME_PAGE = 2; // 应用主页
-  BOOKS_HOME_PAGE = 3; // 图书主页
-  FAMILY_HOME_PAGE = 4; // 家庭主页
-  KIDS_HOME_PAGE = 5; // 儿童主页
-  PLAY_PASS_HOME_PAGE = 6; // Play Pass 主页
-  NOW_HOME_PAGE = 7; // Now 主页
-  DEALS_HOME_PAGE = 8; // 优惠主页
-  SEARCH_HOME_PAGE = 9; // 搜索主页
-  DETAILS_PAGE = 10; // 详情页
-  APPS_SEARCH_PAGE = 11; // 应用搜索页
-  EBOOKS_SEARCH_PAGE = 12; // 电子书搜索页
-  DEEP_LINK_SEARCH = 13; // 深度链接搜索
-  TABBED_BROWSE_FRAGMENT_HOME_PAGE = 14; // 分栏浏览片段主页
-  DETAILS_PAGE_TOOLBAR = 15; // 详情页工具栏
-  UNKNOWN_SEARCH_TRAFFIC_SOURCE_CAR = 16; // 未知搜索流量来源（车载）
-  LOYALTY_HOME_PAGE = 17; // 忠诚度主页
+  UNKNOWN_SEARCH_TRAFFIC_SOURCE = 0;
+  GAMES_HOME_PAGE = 1;
+  APPS_HOME_PAGE = 2;
+  BOOKS_HOME_PAGE = 3;
+  FAMILY_HOME_PAGE = 4;
+  KIDS_HOME_PAGE = 5;
+  PLAY_PASS_HOME_PAGE = 6;
+  NOW_HOME_PAGE = 7;
+  DEALS_HOME_PAGE = 8;
+  SEARCH_HOME_PAGE = 9;
+  DETAILS_PAGE = 10;
+  APPS_SEARCH_PAGE = 11;
+  EBOOKS_SEARCH_PAGE = 12;
+  DEEP_LINK_SEARCH = 13;
+  TABBED_BROWSE_FRAGMENT_HOME_PAGE = 14;
+  DETAILS_PAGE_TOOLBAR = 15;
+  UNKNOWN_SEARCH_TRAFFIC_SOURCE_CAR = 16;
+  LOYALTY_HOME_PAGE = 17;
 }
 
-// 中级完整性响应包装扩展消息
 message IntermediateIntegrityResponseWrapperExtend {
   message IntermediateIntegrityResponseWrapper {
     message AssetModuleDeliveryResponse {
-      repeated Bbvy a = 3; // Bbvy 类型的重复字段 a
-      optional int32 b = 4; // 可选 int32 字段 b
+      repeated Bbvy a = 3;
+      optional int32 b = 4;
     }
 
     message Bbvy {
-      optional string b = 1; // 可选字符串 b
-      optional int64 d = 2; // 可选 int64 d
-      repeated Bbwb f = 3; // Bbwb 类型的重复字段 f
-      optional int64 c = 4; // 可选 int64 c
-      optional string e = 5; // 可选字符串 e
+      optional string resourcePackageName = 1;
+      optional int64 versionNumber = 2;
+      repeated Bbwb f = 3;
+      optional int64 c = 4;
+      optional string e = 5;
     }
 
     message Bbwb {
-      optional Bcpw b = 1; // Bcpw 类型的可选字段 b
-      optional Bbwc c = 2; // Bbwc 类型的可选字段 c
-      optional Bbwd d = 3; // Bbwd 类型的可选字段 d
+      optional Bcpw b = 1;
+      optional Bbwc c = 2;
+      optional Bbwd d = 3;
     }
 
     message Bcpw {
-      optional string a = 1; // 可选字符串 a
+      optional string a = 1;
     }
 
     message Bbwc {
-      optional int64 a = 1; // 可选 int64 a
-      optional string b = 2; // 可选字符串 b
-      optional Bdph c = 3; // Bdph 类型的可选字段 c
-      repeated Bbvx d = 4; // Bbvx 类型的重复字段 d
+      optional int64 a = 1;
+      optional string b = 2;
+      optional Bdph c = 3;
+      repeated Bbvx d = 4;
     }
 
     message Bbvx {
-      optional int64 a = 1; // 可选 int64 a
-      optional string b = 2; // 可选字符串 b
-      optional string c = 3; // 可选字符串 c
+      optional int64 a = 1;
+      optional string b = 2;
+      optional string c = 3;
     }
 
     message Bbwd {
-      optional Bdpn a = 3; // Bdpn 类型的可选字段 a
-      repeated Bbvx b = 4; // Bbvx 类型的重复字段 b
+      optional Bdpn a = 3;
+      repeated Bbvx b = 4;
     }
 
-    // Bdph 枚举，表示搜索流量来源
     enum Bdph {
-      UNKNOWN_SEARCH_TRAFFIC_SOURCE = 0; // 未知搜索流量来源
-      GAMES_HOME_PAGE = 1; // 游戏主页
-      APPS_HOME_PAGE = 2; // 应用主页
-      BOOKS_HOME_PAGE = 3; // 图书主页
-      FAMILY_HOME_PAGE = 4; // 家庭主页
-      KIDS_HOME_PAGE = 5; // 儿童主页
-      PLAY_PASS_HOME_PAGE = 6; // Play Pass 主页
-      NOW_HOME_PAGE = 7; // Now 主页
-      DEALS_HOME_PAGE = 8; // 优惠主页
-      SEARCH_HOME_PAGE = 9; // 搜索主页
-      DETAILS_PAGE = 10; // 详情页
-      APPS_SEARCH_PAGE = 11; // 应用搜索页
-      EBOOKS_SEARCH_PAGE = 12; // 电子书搜索页
-      DEEP_LINK_SEARCH = 13; // 深度链接搜索
-      TABBED_BROWSE_FRAGMENT_HOME_PAGE = 14; // 分栏浏览片段主页
-      DETAILS_PAGE_TOOLBAR = 15; // 详情页工具栏
-      UNKNOWN_SEARCH_TRAFFIC_SOURCE_CAR = 16; // 未知搜索流量来源（车载）
-      LOYALTY_HOME_PAGE = 17; // 忠诚度主页
+      UNKNOWN_SEARCH_TRAFFIC_SOURCE = 0;
+      GAMES_HOME_PAGE = 1;
+      APPS_HOME_PAGE = 2;
+      BOOKS_HOME_PAGE = 3;
+      FAMILY_HOME_PAGE = 4;
+      KIDS_HOME_PAGE = 5;
+      PLAY_PASS_HOME_PAGE = 6;
+      NOW_HOME_PAGE = 7;
+      DEALS_HOME_PAGE = 8;
+      SEARCH_HOME_PAGE = 9;
+      DETAILS_PAGE = 10;
+      APPS_SEARCH_PAGE = 11;
+      EBOOKS_SEARCH_PAGE = 12;
+      DEEP_LINK_SEARCH = 13;
+      TABBED_BROWSE_FRAGMENT_HOME_PAGE = 14;
+      DETAILS_PAGE_TOOLBAR = 15;
+      UNKNOWN_SEARCH_TRAFFIC_SOURCE_CAR = 16;
+      LOYALTY_HOME_PAGE = 17;
     }
 
-    // Bdpn 枚举，表示安全检查类型
     enum Bdpn {
-      UNKNOWN_SECURITY_CHECK_TYPE = 0; // 未知安全检查类型
-      CALLER_APP_REQUEST = 1; // 调用者应用请求
-      CALLER_APP_DEBUGGABLE = 2; // 调用者应用可调试
-      CALLER_APP_INTENT_HANDLING_PACKAGE_MISSING = 3; // 调用者应用意图处理包缺失
-      CALLER_APP_INSTALLER_PACKAGE_NAME_UNKNOWN = 4; // 调用者应用安装包名未知
-      CALLER_APP_INSTALLER_PACKAGE_NAME_3P = 5; // 调用者应用安装包名为第三方
-      CALLER_APP_INSTALLED_CERTIFICATE_MISSING = 6; // 调用者应用安装证书缺失
-      CALLER_APP_CERTIFICATE_UNMATCHED = 7; // 调用者应用证书不匹配
+      UNKNOWN_SECURITY_CHECK_TYPE = 0;
+      CALLER_APP_REQUEST = 1;
+      CALLER_APP_DEBUGGABLE = 2;
+      CALLER_APP_INTENT_HANDLING_PACKAGE_MISSING = 3;
+      CALLER_APP_INSTALLER_PACKAGE_NAME_UNKNOWN = 4;
+      CALLER_APP_INSTALLER_PACKAGE_NAME_3P = 5;
+      CALLER_APP_INSTALLED_CERTIFICATE_MISSING = 6;
+      CALLER_APP_CERTIFICATE_UNMATCHED = 7;
     }
 
-    optional AssetModuleDeliveryResponse assetModuleDeliveryResponse = 151; // 可选 AssetModuleDeliveryResponse 字段
+    optional AssetModuleDeliveryResponse assetModuleDeliveryResponse = 151;
   }
-  optional IntermediateIntegrityResponseWrapper intermediateIntegrityResponseWrapper = 1; // 可选 IntermediateIntegrityResponseWrapper 字段
+  optional IntermediateIntegrityResponseWrapper intermediateIntegrityResponseWrapper = 1;
 
   optional message5 x = 5;
   optional message9 y = 9;

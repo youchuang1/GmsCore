@@ -47,18 +47,14 @@ public abstract class LicenseRequest<T> extends Request<T> {
 
     private final String auth;
     private static final String TAG = "FakeLicenseRequest";
-
     private static final int BASE64_FLAGS = Base64.URL_SAFE | Base64.NO_WRAP | Base64.NO_PADDING;
     long ANDROID_ID = 1;
     private static final String FINSKY_VERSION = "Finsky/37.5.24-29%20%5B0%5D%20%5BPR%5D%20565477504";
-
     private final Response.Listener<T> successListener;
-
 
     protected LicenseRequest(String url, String auth, Response.Listener<T> successListener, Response.ErrorListener errorListener) {
         super(GET, url, errorListener);
         this.auth = auth;
-
         this.successListener = successListener;
     }
 

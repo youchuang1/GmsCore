@@ -61,10 +61,12 @@ public final class AssetModuleRequest extends Request<byte[]> {
                 callback.onError(error.toString());
             }
         });
+
         this.context = context;
         this.requestPayload = requestPayload;
         this.user = user;
         this.callback = callback;
+        this.setShouldCache(false);
     }
 
     @Override
@@ -186,7 +188,6 @@ public final class AssetModuleRequest extends Request<byte[]> {
         callback.onSuccess(response);
     }
 
-    // 定义一个接口用于回调请求结果
     public interface VolleyCallback {
         void onSuccess(byte[] result);
         void onError(String error);

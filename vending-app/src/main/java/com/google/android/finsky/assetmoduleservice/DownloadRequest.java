@@ -1,4 +1,4 @@
 package com.google.android.finsky.assetmoduleservice;
 
-public class MdoTask {
+public class DownloadRequest {
 }
