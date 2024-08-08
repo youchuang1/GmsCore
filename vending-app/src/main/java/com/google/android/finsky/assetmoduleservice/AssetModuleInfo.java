@@ -52,46 +52,6 @@ class AssetModuleInfo {
         return -5;
     }
 
-    public final void sendPostRequest(String url, final AssetModuleDeliveryRequest requestPayload, final Map<String, String> headers, final VolleyCallback callback) {
-        StringRequest stringRequest = new StringRequest(Request.Method.POST, url,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        Log.d(TAG, "Response is: " + response);
-                        callback.onSuccess(response);
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.e(TAG, "That didn't work!", error);
-                callback.onError(error.toString());
-            }
-        }) {
-            @Override
-            public Map<String, String> getHeaders() throws AuthFailureError {
-                return headers;
-            }
-
-            @Override
-            public byte[] getBody() throws AuthFailureError {
-                return AssetModuleDeliveryRequest.ADAPTER.encode(requestPayload);
-            }
-
-            @Override
-            public String getBodyContentType() {
-                return "application/x-protobuf";
-            }
-        };
-
-        // 将请求添加到请求队列
-        requestQueue.add(stringRequest);
-    }
-
-    // 定义一个接口用于回调请求结果
-    public interface VolleyCallback {
-        void onSuccess(String result);
-        void onError(String error);
-    }
 
     private static boolean containsPackageName(String[] packageNames, String targetPackage) {
         for (String packageName : packageNames) {

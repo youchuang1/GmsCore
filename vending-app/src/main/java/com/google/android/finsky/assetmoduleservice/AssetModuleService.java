@@ -8,12 +8,18 @@ import android.accounts.OperationCanceledException;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
 
 import android.util.Log;
+import android.widget.Toast;
 
+
+import androidx.webkit.internal.ApiFeature;
 
 import com.android.vending.AssetModuleDeliveryRequest;
 import com.android.vending.Bbvz;
@@ -28,6 +34,8 @@ import com.google.android.play.core.assetpacks.protocol.IAssetModuleServiceCallb
 
 
 import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -44,7 +52,6 @@ public class AssetModuleService extends Service {
     public void onCreate() {
         super.onCreate();
         context = this;
-        // 初始化 AssetModuleInfo 实例
         assetModuleInfo = new AssetModuleInfo(this, getPackageManager(), new AssetModuleController(), new AuthenticationHandler(), new OwnershipChecker());
         user = getAccount();
     }
@@ -55,8 +62,19 @@ public class AssetModuleService extends Service {
         if (accounts.length > 0) {
             return accounts[0];
         }
-        return null; // 处理没有找到账户的情况
+        return null;
     }
+
+    private String getAppVersionCode(String packageName) {
+        try {
+            PackageManager pm = getPackageManager();
+            PackageInfo packageInfo = pm.getPackageInfo(packageName, 0);
+            return String.valueOf(packageInfo.versionCode);
+        } catch (PackageManager.NameNotFoundException e) {
+            return null;
+        }
+    }
+
 
     private final IAssetModuleService.Stub service = new IAssetModuleService.Stub() {
 
@@ -158,7 +176,6 @@ public class AssetModuleService extends Service {
         @Override
         public void requestDownloadInfo(String packageName, List<Bundle> list, Bundle bundle, IAssetModuleServiceCallback callback) throws RemoteException {
             Log.d(TAG, "Method (requestDownloadInfo) called by packageName -> " + packageName);
-
             int playcore_version_code = assetModuleInfo.checkPackagePermissions(packageName, bundle.getInt("playcore_version_code", 0));
             if (playcore_version_code != 0) {
                 Bundle errorBundle = new Bundle();
@@ -166,25 +183,36 @@ public class AssetModuleService extends Service {
                 callback.onError(errorBundle);
             } else {
                 Log.d(TAG, packageName + "----" + playcore_version_code + "----");
+                String versionCode = getAppVersionCode(packageName);
 
-                AssetModuleDeliveryRequest requestPayload = new AssetModuleDeliveryRequest.Builder()
-                        .pkgname("com.gameloft.android.ANMP.GloftDYHM")
+                if (versionCode != null) {
+                    Log.d(TAG,versionCode);
+                }
+
+                // 构建请求负载的构建器
+                AssetModuleDeliveryRequest.Builder requestBuilder = new AssetModuleDeliveryRequest.Builder()
+                        .pkgname(packageName)
                         .c(new Bbvz.Builder()
-                                .oneofField1(940031)
+                                .oneofField1(Integer.valueOf(versionCode))
                                 .d(3)
                                 .build())
-                        .playCoreVersion(20201)
+                        .playCoreVersion(bundle.getInt("playcore_version_code"))
                         .supportedCompressionFormats(Arrays.asList(Bdpo.UNKNOWN_SEARCH_TRAFFIC_SOURCE, Bdpo.BOOKS_HOME_PAGE))
                         .supportedPatchFormats(Arrays.asList(Bdpp.CALLER_APP_REQUEST, Bdpp.CALLER_APP_DEBUGGABLE))
-                        .requestedAssetModules(Arrays.asList(new Bcmf.Builder()
-                                .b("dlc_hd")
-                                .c(7738135720018340206L)
-                                .build()))
-                        .isInstantApp(false)
-                        .build();
+                        .isInstantApp(false);
 
+                // 循环处理list，获取每个bundle的module_name值，并添加到请求模块列表中
+                for (Bundle b : list) {
+                    String moduleName = b.getString("module_name");
+                    if (moduleName != null) {
+                        requestBuilder.requestedAssetModules(Arrays.asList(new Bcmf.Builder().b(moduleName).build()));
+                    }
+                }
 
+                // 构建最终的请求负载
+                AssetModuleDeliveryRequest requestPayload = requestBuilder.build();
 
+                // 打印请求负载以调试
                 Log.d(TAG, String.valueOf(requestPayload));
 
 
