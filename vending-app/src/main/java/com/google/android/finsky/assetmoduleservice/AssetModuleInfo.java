@@ -3,33 +3,18 @@ package com.google.android.finsky.assetmoduleservice;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Binder;
-import android.util.Log;
-
-import com.android.vending.AssetModuleDeliveryRequest;
-import com.android.volley.AuthFailureError;
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
-
-import java.io.IOException;
-import java.util.Map;
 
 class AssetModuleInfo {
     private PackageManager packageManager;
     private Object assetModule;
     private Object authHandler;
     private Object ownershipChecker;
-    private RequestQueue requestQueue;
 
     public AssetModuleInfo(Context context, PackageManager packageManager, Object assetModule, Object authHandler, Object ownershipChecker) {
         this.packageManager = packageManager;
         this.assetModule = assetModule;
         this.authHandler = authHandler;
         this.ownershipChecker = ownershipChecker;
-        this.requestQueue = Volley.newRequestQueue(context);
     }
 
     public final int checkPackagePermissions(String packageName, int someValue) {
@@ -73,16 +58,8 @@ class AssetModuleInfo {
     private static boolean isSpecialConditionMet(AssetModuleController assetModuleController, int value) {
         return true;
     }
-
-    private static void logError(String message, Object... args) {
-    }
-
-    private static final String TAG = "AssetModuleInfo";
 }
 
-class PackageManagerHelper {
-    public PackageManager d;
-}
 
 class AssetModuleController {
     public String getConfig(String module, String controller) {

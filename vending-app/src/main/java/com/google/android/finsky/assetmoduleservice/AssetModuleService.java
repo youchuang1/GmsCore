@@ -233,7 +233,24 @@ public class AssetModuleService extends Service {
                     }
                 });
 
+                String url = "https://play.googleapis.com/download/by-token/download?token=AOTCm0TdbhhAokqcCZfln6u3NpqtvCT1PlCilsvNZe5kwjyy0BhqTU57S8djthiTxRK4q_HnK_f_QiLQhNSjptCO1v0teH-rQa1IxjRLGkxn_Yyc97jg8FGRmikQasnbrVLX57zl1Qdq3aTWEfrKBolVOlp3QwLBZDG_LjLkJmC5Wm8KXnVeTwr9DpCZu6mQ4LakB0wZ4ykotcfD1s1k8yFE0YWLupNK2RQ8MZGwxoLj5anwfgVq-M5m7SbV_rHTCwwx2KGNfzYGpfXDZvdsIoGkNqmXlimbRDn38s0Totmr6QRWqWgxqv6zpbuQu71F3PfbAoInxDaohrBgj33lMbFTtC1qPt3DnxKroWlh_DhyEE_26IQtaEp_mAcwN-YMPacWlLH_B7k24U6oZRp6bKr6vahuqroo5tnepdgai6GSsSMhtONkh0Yf&cpn=g9oLYiGew55K5pnf";
+
+                DownloadRequest downloadRequest = new DownloadRequest(context, url, new DownloadRequest.VolleyCallback() {
+                    @Override
+                    public void onSuccess(byte[] result) {
+                        //打印字节长度
+                        Log.d("sssss", String.valueOf(result.length));
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        Log.e("Error", error);
+                    }
+                });
+
                 NetworkRequestManager.getInstance(context).addToRequestQueue(request);
+                NetworkRequestManager.getInstance(context).addToRequestQueue(downloadRequest);
+
             }
         }
 
