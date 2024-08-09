@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -40,6 +41,7 @@ public class AssetModuleService extends Service {
     private AssetModuleInfo assetModuleInfo;
     public Context context;
     private Account user;
+    private final String assetModuleDelivery_URL = "https://play-fe.googleapis.com/fdfe/assetModuleDelivery";
 
 
     @Override
@@ -179,7 +181,7 @@ public class AssetModuleService extends Service {
                 String versionCode = getAppVersionCode(packageName);
 
                 if (versionCode == null) {
-                    Log.d(TAG,versionCode);
+                    Log.d(TAG, versionCode);
                 }
 
                 AssetModuleDeliveryRequest.Builder requestBuilder = new AssetModuleDeliveryRequest.Builder()
@@ -207,19 +209,19 @@ public class AssetModuleService extends Service {
                 Log.d(TAG, String.valueOf(requestPayload));
 
 
-                AssetModuleRequest request = new AssetModuleRequest(context,"https://play-fe.googleapis.com/fdfe/assetModuleDelivery",
-                        requestPayload,user, new AssetModuleRequest.VolleyCallback() {
+                AssetModuleRequest request = new AssetModuleRequest(context, assetModuleDelivery_URL,
+                        requestPayload, user, new AssetModuleRequest.VolleyCallback() {
                     @Override
                     public void onSuccess(byte[] result) {
                         try {
                             IntermediateIntegrityResponseWrapperExtend.IntermediateIntegrityResponseWrapper.AssetModuleDeliveryResponse response = Objects.requireNonNull(IntermediateIntegrityResponseWrapperExtend.ADAPTER.decode(result).intermediateIntegrityResponseWrapper).assetModuleDeliveryResponse;
                             Integer resourceStatus = response.resourceStatus;
-                            if (resourceStatus != 0){
+                            if (resourceStatus != null) {
                                 Bundle errorBundle = new Bundle();
                                 errorBundle.putInt("error_code", resourceStatus);
                                 callback.onError(errorBundle);
                             }
-
+                            downloadResources(packageName, response);
                         } catch (IOException e) {
                             e.printStackTrace();
                         } catch (RemoteException e) {
@@ -232,24 +234,7 @@ public class AssetModuleService extends Service {
                         Log.e("Error", error);
                     }
                 });
-
-
-
-                File cacheDir = context.getCacheDir(); // /data/user/0/com.android.vending/cache
-                DownloadThreadPool downloadPool = DownloadThreadPool.getInstance(3);
-
                 NetworkRequestManager.getInstance(context).addToRequestQueue(request);
-
-                FileDownloader downloader = new FileDownloader(context);
-                String fileUrl = "https://play.googleapis.com/download/by-token/download?token=AOTCm0RLmJtQCX2F7v-YO5yL6HK48tpSBRIQkwsJudzi2LkCrB_dFjTt7ErTgKrbix_sV2hVdtVqlxVVj32q3RWGCMCBOLvwqY9Ba5csJgz7dmaTDXeVbT92i69U-H4yDdQqXEJCYTDObEDViWQfV3C8mQcO21bFTQ3Ap-1bTQEf1wSW8BKAKA9xnwhlSAfAhosu4gnY2IOroP7iWFi_SaybIvHk7Gzr8Yq3pUYsS2zTFaosp6kgy4SK5zcmPxpoESTF2dsdbWvPOzk5Ihc0iCmvVyM8xSh5sTKCvrJuZj03ZT0yWXzdGeM6_UGd0D_DjJIMStU7XO_D1RPGq-fwUfr_IosbkiNIKq1XUtcL7GqRBCMIzISwmUBxjYUN5Y0DKLQnfBwu9PtzAZFAQ3SOfs14rWjW_1e18YcRllq1PsTBg2KOUfVE6THrTTlRzp4G5Msoqrp13Rwf_xecUmESKp5DTSO62jE-0dBzdPR9&cpn=qDqu9jtCXIdZP4XD";
-                File destinationFile = new File(cacheDir, "largefile.zip");
-
-
-                downloader.downloadFile(fileUrl, destinationFile, (totalBytes, downloadedBytes) -> {
-                    // 更新 UI 线程或显示下载进度
-                    System.out.printf("下载进度: %d/%d 字节%n", downloadedBytes, totalBytes);
-                });
-
             }
         }
 
@@ -277,6 +262,7 @@ public class AssetModuleService extends Service {
             }
         }
     };
+
     @Override
     public IBinder onBind(Intent intent) {
         Log.d(TAG, "onBind");
@@ -284,8 +270,52 @@ public class AssetModuleService extends Service {
     }
 
 
+    public void downloadResources(String packageName, IntermediateIntegrityResponseWrapperExtend.IntermediateIntegrityResponseWrapper.AssetModuleDeliveryResponse dataList) {
+        List<IntermediateIntegrityResponseWrapperExtend.IntermediateIntegrityResponseWrapper.Bbvy> resourceList = dataList.resourceList;
+        for (int i = 0; i < resourceList.size(); i++) {
+            IntermediateIntegrityResponseWrapperExtend.IntermediateIntegrityResponseWrapper.Bbvy resource = resourceList.get(i);
+            String resourcePackageName = resource.resourcePackageName;
+            List<IntermediateIntegrityResponseWrapperExtend.IntermediateIntegrityResponseWrapper.Bbwb> fList = resource.f;
 
+            for (int j = 0; j < fList.size(); j++) {
+                IntermediateIntegrityResponseWrapperExtend.IntermediateIntegrityResponseWrapper.Bbwb fResource = fList.get(j);
+                String aaa = fResource.b.a;
 
+                List<IntermediateIntegrityResponseWrapperExtend.IntermediateIntegrityResponseWrapper.Bbvx> dList = fResource.c.d;
 
+                for (int x = 0; x < dList.size(); x++) {
+                    IntermediateIntegrityResponseWrapperExtend.IntermediateIntegrityResponseWrapper.Bbvx dResource = dList.get(x);
+                    String resourceLink = dResource.resourceLink;
+                    int byteLength = Math.toIntExact(dResource.byteLength);
+                    String Index = String.valueOf(i);
+                    String resourceBlockName = String.valueOf(x);
+                    String cacheDir = String.valueOf(context.getCacheDir()) + "/" + Index + "/" + resourcePackageName + "/" + aaa;
 
+                    downloadFile(cacheDir, resourceLink, byteLength, resourceBlockName);
+                }
+            }
+        }
+    }
+
+    private void downloadFile(String resourceLink, String URL, int byteLength, String resourceBlockName) {
+//        Log.d("sssss2", "resourceLink:" + resourceLink + ", URL: " + URL + "byteLength:" + byteLength + ", resourceBlockName:" + resourceBlockName);
+
+        FileDownloader fileDownloader = new FileDownloader(this);
+        File destination = new File(resourceLink, resourceBlockName);
+
+        fileDownloader.downloadFile(URL, destination, new FileDownloader.ProgressListener() {
+            @Override
+            public void onProgress(long totalBytes, long downloadedBytes) {
+                // 更新进度，例如更新进度条
+                Log.d("DownloadProgress", "Downloaded " + downloadedBytes + " of " + totalBytes);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                // 处理错误
+                e.printStackTrace();
+            }
+        });
+
+    }
 }
