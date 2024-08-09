@@ -7,8 +7,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
 
 import android.util.Log;
@@ -26,6 +28,7 @@ import com.google.android.play.core.assetpacks.protocol.IAssetModuleServiceCallb
 
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import java.util.ArrayList;
@@ -114,6 +117,7 @@ public class AssetModuleService extends Service {
                 callback.onError(bundle1);
             } else {
                 Log.d(TAG, packageName + "----" + playcore_version_code + "----");
+                callback.onNotifyChunkTransferred(bundle, new Bundle());
             }
         }
 
@@ -128,6 +132,7 @@ public class AssetModuleService extends Service {
             } else {
                 Log.d(TAG, packageName + "----" + playcore_version_code + "----");
                 // 正常处理逻辑
+                callback.onNotifyModuleCompleted(bundle,new Bundle());
             }
         }
 
@@ -152,6 +157,9 @@ public class AssetModuleService extends Service {
                 callback.onError(bundle1);
             } else {
                 Log.d(TAG, "Method (keepAlive) called but not implemented by packageName -> " + packageName);
+                Bundle bundle1 = new Bundle();
+                bundle.putBoolean("keep_alive", true);
+                callback.onKeepAlive(bundle1, new Bundle());
             }
         }
 
@@ -166,6 +174,20 @@ public class AssetModuleService extends Service {
             } else {
                 Log.d(TAG, packageName + "----" + playcore_version_code + "----");
                 // 正常处理逻辑
+                ParcelFileDescriptor parcelFileDescriptor0;
+                // todo 要下载的文件
+                String downLoadFile = "";
+                String s4 = Uri.parse(downLoadFile).getPath();
+                File file0 = new File(s4);
+                try {
+                    parcelFileDescriptor0 = ParcelFileDescriptor.open(file0, ParcelFileDescriptor.MODE_READ_ONLY);
+                }
+                catch(FileNotFoundException unused_ex) {
+                    return;
+                }
+                Bundle bundle0 = new Bundle();
+                bundle0.putParcelable("chunk_file_descriptor", parcelFileDescriptor0);
+                callback.onKeepAlive(bundle0, new Bundle());
             }
         }
 
