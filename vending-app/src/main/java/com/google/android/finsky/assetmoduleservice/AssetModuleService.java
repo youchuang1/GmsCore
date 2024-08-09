@@ -2,24 +2,16 @@ package com.google.android.finsky.assetmoduleservice;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
-
-import android.accounts.AuthenticatorException;
-import android.accounts.OperationCanceledException;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
 
 import android.util.Log;
-import android.widget.Toast;
-
-
-import androidx.webkit.internal.ApiFeature;
 
 import com.android.vending.AssetModuleDeliveryRequest;
 import com.android.vending.Bbvz;
@@ -33,20 +25,22 @@ import com.google.android.play.core.assetpacks.protocol.IAssetModuleService;
 import com.google.android.play.core.assetpacks.protocol.IAssetModuleServiceCallback;
 
 
+import java.io.File;
 import java.io.IOException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
+
 
 public class AssetModuleService extends Service {
     private static final String TAG = "AssetModuleService";
     private AssetModuleInfo assetModuleInfo;
     public Context context;
     private Account user;
+
 
     @Override
     public void onCreate() {
@@ -182,7 +176,6 @@ public class AssetModuleService extends Service {
                 errorBundle.putInt("error_code", playcore_version_code);
                 callback.onError(errorBundle);
             } else {
-
                 String versionCode = getAppVersionCode(packageName);
 
                 if (versionCode == null) {
@@ -207,7 +200,6 @@ public class AssetModuleService extends Service {
                         assetModules.add(new Bcmf.Builder().b(moduleName).build());
                     }
                 }
-
                 requestBuilder.requestedAssetModules(assetModules);
 
                 AssetModuleDeliveryRequest requestPayload = requestBuilder.build();
@@ -220,10 +212,18 @@ public class AssetModuleService extends Service {
                     @Override
                     public void onSuccess(byte[] result) {
                         try {
-                            IntermediateIntegrityResponseWrapperExtend response = IntermediateIntegrityResponseWrapperExtend.ADAPTER.decode(result);
-                            Log.d("Response", response.toString());
+                            IntermediateIntegrityResponseWrapperExtend.IntermediateIntegrityResponseWrapper.AssetModuleDeliveryResponse response = Objects.requireNonNull(IntermediateIntegrityResponseWrapperExtend.ADAPTER.decode(result).intermediateIntegrityResponseWrapper).assetModuleDeliveryResponse;
+                            Integer resourceStatus = response.resourceStatus;
+                            if (resourceStatus != 0){
+                                Bundle errorBundle = new Bundle();
+                                errorBundle.putInt("error_code", resourceStatus);
+                                callback.onError(errorBundle);
+                            }
+
                         } catch (IOException e) {
                             e.printStackTrace();
+                        } catch (RemoteException e) {
+                            throw new RuntimeException(e);
                         }
                     }
 
@@ -233,23 +233,22 @@ public class AssetModuleService extends Service {
                     }
                 });
 
-                String url = "https://play.googleapis.com/download/by-token/download?token=AOTCm0TdbhhAokqcCZfln6u3NpqtvCT1PlCilsvNZe5kwjyy0BhqTU57S8djthiTxRK4q_HnK_f_QiLQhNSjptCO1v0teH-rQa1IxjRLGkxn_Yyc97jg8FGRmikQasnbrVLX57zl1Qdq3aTWEfrKBolVOlp3QwLBZDG_LjLkJmC5Wm8KXnVeTwr9DpCZu6mQ4LakB0wZ4ykotcfD1s1k8yFE0YWLupNK2RQ8MZGwxoLj5anwfgVq-M5m7SbV_rHTCwwx2KGNfzYGpfXDZvdsIoGkNqmXlimbRDn38s0Totmr6QRWqWgxqv6zpbuQu71F3PfbAoInxDaohrBgj33lMbFTtC1qPt3DnxKroWlh_DhyEE_26IQtaEp_mAcwN-YMPacWlLH_B7k24U6oZRp6bKr6vahuqroo5tnepdgai6GSsSMhtONkh0Yf&cpn=g9oLYiGew55K5pnf";
 
-                DownloadRequest downloadRequest = new DownloadRequest(context, url, new DownloadRequest.VolleyCallback() {
-                    @Override
-                    public void onSuccess(byte[] result) {
-                        //打印字节长度
-                        Log.d("sssss", String.valueOf(result.length));
-                    }
 
-                    @Override
-                    public void onError(String error) {
-                        Log.e("Error", error);
-                    }
-                });
+                File cacheDir = context.getCacheDir(); // /data/user/0/com.android.vending/cache
+                DownloadThreadPool downloadPool = DownloadThreadPool.getInstance(3);
 
                 NetworkRequestManager.getInstance(context).addToRequestQueue(request);
-                NetworkRequestManager.getInstance(context).addToRequestQueue(downloadRequest);
+
+                FileDownloader downloader = new FileDownloader(context);
+                String fileUrl = "https://play.googleapis.com/download/by-token/download?token=AOTCm0RLmJtQCX2F7v-YO5yL6HK48tpSBRIQkwsJudzi2LkCrB_dFjTt7ErTgKrbix_sV2hVdtVqlxVVj32q3RWGCMCBOLvwqY9Ba5csJgz7dmaTDXeVbT92i69U-H4yDdQqXEJCYTDObEDViWQfV3C8mQcO21bFTQ3Ap-1bTQEf1wSW8BKAKA9xnwhlSAfAhosu4gnY2IOroP7iWFi_SaybIvHk7Gzr8Yq3pUYsS2zTFaosp6kgy4SK5zcmPxpoESTF2dsdbWvPOzk5Ihc0iCmvVyM8xSh5sTKCvrJuZj03ZT0yWXzdGeM6_UGd0D_DjJIMStU7XO_D1RPGq-fwUfr_IosbkiNIKq1XUtcL7GqRBCMIzISwmUBxjYUN5Y0DKLQnfBwu9PtzAZFAQ3SOfs14rWjW_1e18YcRllq1PsTBg2KOUfVE6THrTTlRzp4G5Msoqrp13Rwf_xecUmESKp5DTSO62jE-0dBzdPR9&cpn=qDqu9jtCXIdZP4XD";
+                File destinationFile = new File(cacheDir, "largefile.zip");
+
+
+                downloader.downloadFile(fileUrl, destinationFile, (totalBytes, downloadedBytes) -> {
+                    // 更新 UI 线程或显示下载进度
+                    System.out.printf("下载进度: %d/%d 字节%n", downloadedBytes, totalBytes);
+                });
 
             }
         }
@@ -278,10 +277,15 @@ public class AssetModuleService extends Service {
             }
         }
     };
-
     @Override
     public IBinder onBind(Intent intent) {
         Log.d(TAG, "onBind");
         return service.asBinder();
     }
+
+
+
+
+
+
 }

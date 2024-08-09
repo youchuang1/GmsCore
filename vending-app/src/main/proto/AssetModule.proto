@@ -66,8 +66,8 @@ enum Bdpo {
 message IntermediateIntegrityResponseWrapperExtend {
   message IntermediateIntegrityResponseWrapper {
     message AssetModuleDeliveryResponse {
-      repeated Bbvy a = 3;
-      optional int32 b = 4;
+      repeated Bbvy resourceList = 3;
+      optional int32 resourceStatus = 4;
     }
 
     message Bbvy {
