@@ -7,10 +7,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
 
 import android.util.Log;
@@ -23,12 +21,11 @@ import com.android.vending.Bdpp;
 import com.android.vending.IntermediateIntegrityResponseWrapperExtend;
 
 
+import com.google.android.play.core.assetpacks.model.AssetPackStatus;
 import com.google.android.play.core.assetpacks.protocol.IAssetModuleService;
 import com.google.android.play.core.assetpacks.protocol.IAssetModuleServiceCallback;
 
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import java.util.ArrayList;
@@ -36,6 +33,7 @@ import java.util.Arrays;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 
@@ -45,6 +43,7 @@ public class AssetModuleService extends Service {
     public Context context;
     private Account user;
     private final String assetModuleDelivery_URL = "https://play-fe.googleapis.com/fdfe/assetModuleDelivery";
+    private AppData appData;
 
 
     @Override
@@ -53,6 +52,7 @@ public class AssetModuleService extends Service {
         context = this;
         assetModuleInfo = new AssetModuleInfo(this, getPackageManager(), new AssetModuleController(), new AuthenticationHandler(), new OwnershipChecker());
         user = getAccount();
+        appData = new AppData();
     }
 
     private Account getAccount() {
@@ -87,11 +87,54 @@ public class AssetModuleService extends Service {
                 callback.onError(bundle1);
             } else {
                 Log.d(TAG, packageName + "----" + playcore_version_code + "----");
-                Bundle result = new Bundle();
-                result.putStringArrayList("pack_names", new ArrayList<>());
-                callback.onStartDownload(-1, result);
+
+                for (Bundle b : list) {
+                    String moduleName = b.getString("module_name");
+                    ArrayList<String> packNames = new ArrayList<>();
+                    packNames.add(moduleName);
+                    AppData.PackData packData = appData.getPackData(moduleName);
+
+
+
+
+
+
+//                    for (Bundle c : packData.getBundleList()) {
+//                        Log.d("aaa2",c.toString());
+//                    }
+
+
+
+                    Bundle bundle_data = new Bundle();
+                    bundle_data.putInt("session_id:" + moduleName, packData.getSessionId());
+                    bundle_data.putInt("status:" + moduleName, AssetPackStatus.PENDING);
+                    bundle_data.putInt("error_code:" + moduleName, packData.getErrorCode());
+                    bundle_data.putLong("pack_version:" + moduleName, packData.getPackVersion());
+                    bundle_data.putLong("pack_base_version:" + moduleName, packData.getPackBaseVersion());
+                    bundle_data.putLong("bytes_downloaded:" + moduleName, packData.getBytesDownloaded());
+                    bundle_data.putLong("total_bytes_to_download:" + moduleName, packData.getTotalBytesToDownload());
+                    bundle_data.putStringArrayList("pack_names", packNames);
+                    bundle_data.putInt("status", AssetPackStatus.PENDING);
+                    bundle_data.putInt("app_version_code", appData.getAppVersionCode());
+                    bundle_data.putLong("total_bytes_to_download", packData.getTotalBytesToDownload());
+                    bundle_data.putInt("error_code", appData.getErrorCode());
+                    bundle_data.putInt("session_id", appData.getSessionId());
+                    bundle_data.putLong("bytes_downloaded", 0);
+
+                    Log.d("aaa3",bundle_data.toString());
+                    callback.onStartDownload(-1, bundle_data);
+
+                    appData.setStatus(2);
+
+
+
+//                    return;
+
+                }
             }
         }
+
+
 
         @Override
         public void getSessionStates(String packageName, Bundle bundle, IAssetModuleServiceCallback callback) throws RemoteException {
@@ -102,7 +145,6 @@ public class AssetModuleService extends Service {
                 callback.onError(bundle1);
             } else {
                 Log.d(TAG, "Method (getSessionStates) called by packageName -> " + packageName);
-
             }
         }
 
@@ -117,7 +159,6 @@ public class AssetModuleService extends Service {
                 callback.onError(bundle1);
             } else {
                 Log.d(TAG, packageName + "----" + playcore_version_code + "----");
-                callback.onNotifyChunkTransferred(bundle, new Bundle());
             }
         }
 
@@ -132,7 +173,6 @@ public class AssetModuleService extends Service {
             } else {
                 Log.d(TAG, packageName + "----" + playcore_version_code + "----");
                 // 正常处理逻辑
-                callback.onNotifyModuleCompleted(bundle,new Bundle());
             }
         }
 
@@ -157,9 +197,6 @@ public class AssetModuleService extends Service {
                 callback.onError(bundle1);
             } else {
                 Log.d(TAG, "Method (keepAlive) called but not implemented by packageName -> " + packageName);
-                Bundle bundle1 = new Bundle();
-                bundle.putBoolean("keep_alive", true);
-                callback.onKeepAlive(bundle1, new Bundle());
             }
         }
 
@@ -174,20 +211,6 @@ public class AssetModuleService extends Service {
             } else {
                 Log.d(TAG, packageName + "----" + playcore_version_code + "----");
                 // 正常处理逻辑
-                ParcelFileDescriptor parcelFileDescriptor0;
-                // todo 要下载的文件
-                String downLoadFile = "";
-                String s4 = Uri.parse(downLoadFile).getPath();
-                File file0 = new File(s4);
-                try {
-                    parcelFileDescriptor0 = ParcelFileDescriptor.open(file0, ParcelFileDescriptor.MODE_READ_ONLY);
-                }
-                catch(FileNotFoundException unused_ex) {
-                    return;
-                }
-                Bundle bundle0 = new Bundle();
-                bundle0.putParcelable("chunk_file_descriptor", parcelFileDescriptor0);
-                callback.onKeepAlive(bundle0, new Bundle());
             }
         }
 
@@ -204,6 +227,35 @@ public class AssetModuleService extends Service {
 
                 if (versionCode == null) {
                     Log.d(TAG, versionCode);
+                }
+
+                if (appData.getPackNames() != null && !appData.getPackNames().isEmpty()) {
+                    Bundle bundle_data = new Bundle();
+                    bundle_data.putStringArrayList("pack_names", appData.getPackNames());
+                    bundle_data.putInt("error_code", appData.getErrorCode());
+                    bundle_data.putInt("session_id", appData.getSessionId());
+                    bundle_data.putLong("bytes_downloaded", appData.getBytesDownloaded());
+                    bundle_data.putInt("status", appData.getStatus());
+                    bundle_data.putInt("app_version_code", appData.getAppVersionCode());
+                    bundle_data.putLong("total_bytes_to_download", appData.getTotalBytesToDownload());
+
+                    // 添加每个包的数据
+                    for (String packName : appData.getPackNames()) {
+                        AppData.PackData packData = appData.getPackData(packName);
+                        if (packData != null) {
+                            bundle_data.putInt("session_id:" + packName, packData.getSessionId());
+                            bundle_data.putInt("status:" + packName, packData.getStatus());
+                            bundle_data.putInt("error_code:" + packName, packData.getErrorCode());
+                            bundle_data.putLong("pack_version:" + packName, packData.getPackVersion());
+                            bundle_data.putLong("pack_base_version:" + packName, packData.getPackBaseVersion());
+                            bundle_data.putLong("bytes_downloaded:" + packName, packData.getBytesDownloaded());
+                            bundle_data.putLong("total_bytes_to_download:" + packName, packData.getTotalBytesToDownload());
+                        }
+                    }
+
+                    Log.d("sssss",bundle_data.toString());
+                    callback.onRequestDownloadInfo(bundle_data, bundle_data);
+                    return;
                 }
 
                 AssetModuleDeliveryRequest.Builder requestBuilder = new AssetModuleDeliveryRequest.Builder()
@@ -294,50 +346,98 @@ public class AssetModuleService extends Service {
 
     public void downloadResources(String packageName, IntermediateIntegrityResponseWrapperExtend.IntermediateIntegrityResponseWrapper.AssetModuleDeliveryResponse dataList) {
         List<IntermediateIntegrityResponseWrapperExtend.IntermediateIntegrityResponseWrapper.Bbvy> resourceList = dataList.resourceList;
+
+        List<String> pack_names = new ArrayList<>();
+        Long total_bytes_to_download = 0L;
+        int app_version_code = 0;
+        int session_id = 0;
+        int error_code = 0;
+        int bytes_downloaded = 0;
+
         for (int i = 0; i < resourceList.size(); i++) {
             IntermediateIntegrityResponseWrapperExtend.IntermediateIntegrityResponseWrapper.Bbvy resource = resourceList.get(i);
             String resourcePackageName = resource.resourcePackageName;
-            List<IntermediateIntegrityResponseWrapperExtend.IntermediateIntegrityResponseWrapper.Bbwb> fList = resource.f;
+            ArrayList<Bundle> bundlePackageName = new ArrayList<>();
 
+            long total_bytes_to_downloads = 0L;
+
+            app_version_code = Math.toIntExact(resource.versionNumber);
+            pack_names.add(resourcePackageName);
+            List<IntermediateIntegrityResponseWrapperExtend.IntermediateIntegrityResponseWrapper.Bbwb> fList = resource.f;
+            session_id = i;
             for (int j = 0; j < fList.size(); j++) {
                 IntermediateIntegrityResponseWrapperExtend.IntermediateIntegrityResponseWrapper.Bbwb fResource = fList.get(j);
                 String aaa = fResource.b.a;
-
                 List<IntermediateIntegrityResponseWrapperExtend.IntermediateIntegrityResponseWrapper.Bbvx> dList = fResource.c.d;
-
                 for (int x = 0; x < dList.size(); x++) {
                     IntermediateIntegrityResponseWrapperExtend.IntermediateIntegrityResponseWrapper.Bbvx dResource = dList.get(x);
                     String resourceLink = dResource.resourceLink;
-                    int byteLength = Math.toIntExact(dResource.byteLength);
+                    total_bytes_to_download += dResource.byteLength;
+                    total_bytes_to_downloads += dResource.byteLength;
                     String Index = String.valueOf(i);
                     String resourceBlockName = String.valueOf(x);
-                    String cacheDir = String.valueOf(context.getCacheDir()) + "/" + Index + "/" + resourcePackageName + "/" + aaa;
-
-                    downloadFile(cacheDir, resourceLink, byteLength, resourceBlockName);
+                    Bundle bundle = new Bundle();
+                    bundle.putString("CacheDir", String.valueOf(context.getCacheDir()));
+                    bundle.putInt("index", Integer.parseInt(Index));
+                    bundle.putString("resourcePackageName", resourcePackageName);
+                    bundle.putString("aaa", aaa);
+                    bundle.putString("resourceLink", resourceLink);
+                    bundle.putInt("byteLength", Math.toIntExact(dResource.byteLength));
+                    bundle.putString("resourceBlockName", resourceBlockName);
+                    bundlePackageName.add(bundle);
                 }
             }
+            AppData.PackData packData = new AppData.PackData();
+            packData.setPackVersion(Math.toIntExact(resource.versionNumber));
+            packData.setPackBaseVersion(0);
+            packData.setSessionId(i);
+            packData.setErrorCode(0);
+            packData.setStatus(8);
+            packData.setBytesDownloaded(0);
+            packData.setTotalBytesToDownload(total_bytes_to_downloads);
+            packData.setBundleList(bundlePackageName);
+            appData.addPackData(resourcePackageName, packData);
         }
+
+        appData.setPackNames((ArrayList<String>) pack_names);
+        appData.setTotalBytesToDownload(total_bytes_to_download);
+        appData.setAppVersionCode(app_version_code);
+        appData.setSessionId(session_id);
+        appData.setStatus(AssetPackStatus.NOT_INSTALLED);
+        appData.setErrorCode(error_code);
+        appData.setBytesDownloaded(bytes_downloaded);
+
     }
 
-    private void downloadFile(String resourceLink, String URL, int byteLength, String resourceBlockName) {
-//        Log.d("sssss2", "resourceLink:" + resourceLink + ", URL: " + URL + "byteLength:" + byteLength + ", resourceBlockName:" + resourceBlockName);
 
-        FileDownloader fileDownloader = new FileDownloader(this);
-        File destination = new File(resourceLink, resourceBlockName);
+    private void downloadFile(String packageName, Bundle bundle) {
+        String resourcePackageName = bundle.getString("resourcePackageName");
+        String aaa = bundle.getString("aaa");
+        String resourceLink = bundle.getString("resourceLink");
+        String URL = bundle.getString("URL");
+        int byteLength = bundle.getInt("byteLength");
+        String resourceBlockName = bundle.getString("resourceBlockName");
+        String Index = String.valueOf(bundle.getInt("index"));
 
-        fileDownloader.downloadFile(URL, destination, new FileDownloader.ProgressListener() {
-            @Override
-            public void onProgress(long totalBytes, long downloadedBytes) {
-                // 更新进度，例如更新进度条
-                Log.d("DownloadProgress", "Downloaded " + downloadedBytes + " of " + totalBytes);
-            }
+        Log.d("sssss2", "resourceLink:" + resourceLink + ", URL: " + URL + "byteLength:" + byteLength + ", resourceBlockName:" + resourceBlockName);
 
-            @Override
-            public void onError(Exception e) {
-                // 处理错误
-                e.printStackTrace();
-            }
-        });
+        String cacheDir = String.valueOf(context.getCacheDir()) + "/" + Index + "/" + resourcePackageName + "/" + aaa;
+//        FileDownloader fileDownloader = new FileDownloader(this);
+//        File destination = new File(resourceLink, resourceBlockName);
+//
+//        fileDownloader.downloadFile(URL, destination, new FileDownloader.ProgressListener() {
+//            @Override
+//            public void onProgress(long totalBytes, long downloadedBytes) {
+//                // 更新进度，例如更新进度条
+//                Log.d("DownloadProgress", "Downloaded " + downloadedBytes + " of " + totalBytes);
+//            }
+//
+//            @Override
+//            public void onError(Exception e) {
+//                // 处理错误
+//                e.printStackTrace();
+//            }
+//        });
 
     }
 }
