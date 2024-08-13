@@ -26,14 +26,13 @@ import com.google.android.play.core.assetpacks.protocol.IAssetModuleService;
 import com.google.android.play.core.assetpacks.protocol.IAssetModuleServiceCallback;
 
 
+import java.io.File;
 import java.io.IOException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 
 
@@ -93,18 +92,6 @@ public class AssetModuleService extends Service {
                     ArrayList<String> packNames = new ArrayList<>();
                     packNames.add(moduleName);
                     AppData.PackData packData = appData.getPackData(moduleName);
-
-
-
-
-
-
-//                    for (Bundle c : packData.getBundleList()) {
-//                        Log.d("aaa2",c.toString());
-//                    }
-
-
-
                     Bundle bundle_data = new Bundle();
                     bundle_data.putInt("session_id:" + moduleName, packData.getSessionId());
                     bundle_data.putInt("status:" + moduleName, AssetPackStatus.PENDING);
@@ -119,17 +106,18 @@ public class AssetModuleService extends Service {
                     bundle_data.putLong("total_bytes_to_download", packData.getTotalBytesToDownload());
                     bundle_data.putInt("error_code", appData.getErrorCode());
                     bundle_data.putInt("session_id", appData.getSessionId());
-                    bundle_data.putLong("bytes_downloaded", 0);
+                    bundle_data.putLong("bytes_downloaded", appData.getBytesDownloaded());
 
-                    Log.d("aaa3",bundle_data.toString());
                     callback.onStartDownload(-1, bundle_data);
 
-                    appData.setStatus(2);
+                    appData.setStatus(AssetPackStatus.DOWNLOADING);
+                    packData.setStatus(AssetPackStatus.DOWNLOADING);
+                    packData.setSessionId(AssetPackStatus.DOWNLOADING);
 
 
-
-//                    return;
-
+                    for (Bundle c : packData.getBundleList()) {
+                        downloadFile(moduleName, c);
+                    }
                 }
             }
         }
@@ -225,9 +213,10 @@ public class AssetModuleService extends Service {
             } else {
                 String versionCode = getAppVersionCode(packageName);
 
-                if (versionCode == null) {
-                    Log.d(TAG, versionCode);
-                }
+//                if (!Objects.equals(packageName, getPackageName())){
+//                    appData = new AppData();
+//                    Log.d(TAG, versionCode);
+//                }
 
                 if (appData.getPackNames() != null && !appData.getPackNames().isEmpty()) {
                     Bundle bundle_data = new Bundle();
@@ -382,7 +371,7 @@ public class AssetModuleService extends Service {
                     bundle.putString("resourcePackageName", resourcePackageName);
                     bundle.putString("aaa", aaa);
                     bundle.putString("resourceLink", resourceLink);
-                    bundle.putInt("byteLength", Math.toIntExact(dResource.byteLength));
+                    bundle.putLong("byteLength", Math.toIntExact(dResource.byteLength));
                     bundle.putString("resourceBlockName", resourceBlockName);
                     bundlePackageName.add(bundle);
                 }
@@ -414,30 +403,29 @@ public class AssetModuleService extends Service {
         String resourcePackageName = bundle.getString("resourcePackageName");
         String aaa = bundle.getString("aaa");
         String resourceLink = bundle.getString("resourceLink");
-        String URL = bundle.getString("URL");
-        int byteLength = bundle.getInt("byteLength");
+        long byteLength = bundle.getLong("byteLength");
         String resourceBlockName = bundle.getString("resourceBlockName");
         String Index = String.valueOf(bundle.getInt("index"));
 
-        Log.d("sssss2", "resourceLink:" + resourceLink + ", URL: " + URL + "byteLength:" + byteLength + ", resourceBlockName:" + resourceBlockName);
+        Log.d("sssss2", "resourceLink:" + resourceLink + ", URL: " + "byteLength:" + byteLength + ", resourceBlockName:" + resourceBlockName);
 
         String cacheDir = String.valueOf(context.getCacheDir()) + "/" + Index + "/" + resourcePackageName + "/" + aaa;
-//        FileDownloader fileDownloader = new FileDownloader(this);
-//        File destination = new File(resourceLink, resourceBlockName);
-//
-//        fileDownloader.downloadFile(URL, destination, new FileDownloader.ProgressListener() {
-//            @Override
-//            public void onProgress(long totalBytes, long downloadedBytes) {
-//                // 更新进度，例如更新进度条
-//                Log.d("DownloadProgress", "Downloaded " + downloadedBytes + " of " + totalBytes);
-//            }
-//
-//            @Override
-//            public void onError(Exception e) {
-//                // 处理错误
-//                e.printStackTrace();
-//            }
-//        });
+        FileDownloader fileDownloader = new FileDownloader(this);
+        File destination = new File(cacheDir, resourceBlockName);
+        fileDownloader.downloadFile(resourceLink, destination, new FileDownloader.ProgressListener() {
 
+            @Override
+            public void onError(Exception e) {
+                // 处理错误
+                e.printStackTrace();
+            }
+            @Override
+            public void onComplete(){
+                appData.incrementPackBytesDownloaded(packageName, byteLength);
+                appData.incrementBytesDownloaded(byteLength);
+                Log.d("sssss3", String.valueOf(appData.getPackField(packageName, "bytesDownloaded")));
+                Log.d("sssss4", String.valueOf(appData.getBytesDownloaded()));
+            }
+        });
     }
 }

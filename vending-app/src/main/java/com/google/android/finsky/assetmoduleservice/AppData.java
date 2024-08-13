@@ -8,6 +8,7 @@ import java.util.Map;
 
 public class AppData {
     // 全局字段
+    private String packageName;
     private int errorCode;
     private int sessionId;
     private long bytesDownloaded;
@@ -128,6 +129,15 @@ public class AppData {
     public void setSessionId(int sessionId) {
         this.sessionId = sessionId;
     }
+
+    public void setPackageName(String packageName) {
+        this.packageName = packageName;
+    }
+
+    public String getPackageName() {
+        return packageName;
+    }
+
 
     public long getBytesDownloaded() {
         return bytesDownloaded;
@@ -267,5 +277,9 @@ public class AppData {
         if (data != null) {
             data.setBytesDownloaded(data.getBytesDownloaded() + bytes);
         }
+    }
+    // 增加全局已下载字节数
+    public void incrementBytesDownloaded(long bytes) {
+        this.bytesDownloaded += bytes;
     }
 }

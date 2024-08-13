@@ -16,8 +16,9 @@ import java.net.URL;
 public class FileDownloader {
 
     public interface ProgressListener {
-        void onProgress(long totalBytes, long downloadedBytes);
+//        void onProgress(long totalBytes, long downloadedBytes);
         void onError(Exception e);
+        void onComplete();
     }
 
     private final Context context;
@@ -93,17 +94,21 @@ public class FileDownloader {
             return null;
         }
 
-        @Override
-        protected void onProgressUpdate(Long... values) {
-            if (listener != null) {
-                listener.onProgress(values[0], values[1]);
-            }
-        }
+//        @Override
+//        protected void onProgressUpdate(Long... values) {
+//            if (listener != null) {
+//                listener.onProgress(values[0], values[1]);
+//            }
+//        }
 
         @Override
         protected void onPostExecute(Exception e) {
-            if (listener != null && e != null) {
-                listener.onError(e);
+            if (listener != null) {
+                if (e != null) {
+                    listener.onError(e);
+                } else {
+                    listener.onComplete();
+                }
             }
         }
     }
