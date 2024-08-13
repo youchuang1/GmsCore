@@ -22,8 +22,21 @@ public class AppData {
 
     public AppData() {
         this.packData = new HashMap<>();
+        initialize(); // 在构造函数中调用初始化方法
     }
 
+    // 初始化方法
+    public void initialize() {
+        this.packageName = null;
+        this.errorCode = 0;
+        this.sessionId = 0;
+        this.bytesDownloaded = 0;
+        this.status = 0;
+        this.packNames = new ArrayList<>();
+        this.appVersionCode = 0;
+        this.totalBytesToDownload = 0L;
+        this.packData.clear(); // 确保包数据映射是清空的
+    }
 
     // 内部类，用于存储每个包的数据
     public static class PackData {
@@ -37,16 +50,6 @@ public class AppData {
         private String packVersionTag;
         private ArrayList<Bundle> bundleList;
 
-
-
-
-        public ArrayList<Bundle> getBundleList() {
-            return bundleList;
-        }
-
-        public void setBundleList(ArrayList<Bundle> bundleList) {
-            this.bundleList = bundleList;
-        }
         // getters and setters
         public int getPackVersion() {
             return packVersion;
@@ -96,8 +99,8 @@ public class AppData {
             this.bytesDownloaded = bytesDownloaded;
         }
 
-        public int getTotalBytesToDownload() {
-            return (int) totalBytesToDownload;
+        public long getTotalBytesToDownload() {
+            return totalBytesToDownload;
         }
 
         public void setTotalBytesToDownload(long totalBytesToDownload) {
@@ -110,6 +113,14 @@ public class AppData {
 
         public void setPackVersionTag(String packVersionTag) {
             this.packVersionTag = packVersionTag;
+        }
+
+        public ArrayList<Bundle> getBundleList() {
+            return bundleList;
+        }
+
+        public void setBundleList(ArrayList<Bundle> bundleList) {
+            this.bundleList = bundleList;
         }
     }
 
@@ -138,7 +149,6 @@ public class AppData {
         return packageName;
     }
 
-
     public long getBytesDownloaded() {
         return bytesDownloaded;
     }
@@ -163,11 +173,6 @@ public class AppData {
         this.packNames = packNames;
     }
 
-
-
-
-
-
     public int getAppVersionCode() {
         return appVersionCode;
     }
@@ -191,7 +196,6 @@ public class AppData {
     public void setPackData(Map<String, PackData> packData) {
         this.packData = packData;
     }
-
 
     public void addPackData(String packName, PackData data) {
         this.packData.put(packName, data);
@@ -278,6 +282,7 @@ public class AppData {
             data.setBytesDownloaded(data.getBytesDownloaded() + bytes);
         }
     }
+
     // 增加全局已下载字节数
     public void incrementBytesDownloaded(long bytes) {
         this.bytesDownloaded += bytes;
