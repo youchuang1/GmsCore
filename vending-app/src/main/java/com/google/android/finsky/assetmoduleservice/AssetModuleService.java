@@ -22,6 +22,7 @@ import com.android.vending.IntermediateIntegrityResponseWrapperExtend;
 
 
 import com.google.android.play.core.assetpacks.model.AssetPackStatus;
+import com.google.android.play.core.assetpacks.model.StringUtil;
 import com.google.android.play.core.assetpacks.protocol.IAssetModuleService;
 import com.google.android.play.core.assetpacks.protocol.IAssetModuleServiceCallback;
 
@@ -245,7 +246,7 @@ public class AssetModuleService extends Service {
                         }
                     }
 
-                    Log.d("sssss",bundle_data.toString());
+                    Log.d("sssss", bundle_data.toString());
                     callback.onRequestDownloadInfo(bundle_data, bundle_data);
                     return;
                 }
@@ -405,31 +406,78 @@ public class AssetModuleService extends Service {
 
     private void downloadFile(String packageName, Bundle bundle) {
         String resourcePackageName = bundle.getString("resourcePackageName");
-        String aaa = bundle.getString("aaa");
+        String chunkName = bundle.getString("aaa");
         String resourceLink = bundle.getString("resourceLink");
         long byteLength = bundle.getLong("byteLength");
         String resourceBlockName = bundle.getString("resourceBlockName");
         String Index = String.valueOf(bundle.getInt("index"));
 
         Log.d("sssss2", "resourceLink:" + resourceLink + ", URL: " + "byteLength:" + byteLength + ", resourceBlockName:" + resourceBlockName);
+        
+        String cacheDir = String.valueOf(context.getCacheDir()) + "/" + Index + "/" + resourcePackageName + "/" + chunkName;
+        FileDownloader fileDownloader = new FileDownloader(this);
+        File destination = new File(cacheDir, resourceBlockName);
+        fileDownloader.downloadFile(resourceLink, destination, new FileDownloader.ProgressListener() {
 
-//        String cacheDir = String.valueOf(context.getCacheDir()) + "/" + Index + "/" + resourcePackageName + "/" + aaa;
-//        FileDownloader fileDownloader = new FileDownloader(this);
-//        File destination = new File(cacheDir, resourceBlockName);
-//        fileDownloader.downloadFile(resourceLink, destination, new FileDownloader.ProgressListener() {
-//
-//            @Override
-//            public void onError(Exception e) {
-//                // 处理错误
-//                e.printStackTrace();
-//            }
-//            @Override
-//            public void onComplete(){
-//                appData.incrementPackBytesDownloaded(packageName, byteLength);
-//                appData.incrementBytesDownloaded(byteLength);
-//                Log.d("sssss3", String.valueOf(appData.getPackField(packageName, "bytesDownloaded")));
-//                Log.d("sssss4", String.valueOf(appData.getBytesDownloaded()));
-//            }
-//        });
+            @Override
+            public void onError(Exception e) {
+                // 处理错误
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onComplete() {
+                appData.incrementPackBytesDownloaded(packageName, byteLength);
+                appData.incrementBytesDownloaded(byteLength);
+                Log.d("sssss3", String.valueOf(appData.getPackField(packageName, "bytesDownloaded")));
+                Log.d("sssss4", String.valueOf(appData.getBytesDownloaded()));
+
+                ArrayList uArrayList4 = new ArrayList();//TODO
+                int status = AssetPackStatus.DOWNLOADING;
+                int version = Integer.parseInt(getAppVersionCode(packageName));
+
+                Bundle uBundle = new Bundle();
+                uBundle.putInt("app_version_code", version);
+                uBundle.putInt("error_code", 0);
+                uBundle.putInt("session_id", 0); //TODO
+                uBundle.putInt("status", status);
+                String[] stringArray = new String[]{resourcePackageName};
+                uBundle.putStringArrayList("pack_names", new ArrayList(Arrays.asList(stringArray)));
+                uBundle.putLong("bytes_downloaded", 0);//TODO
+                uBundle.putLong("total_bytes_to_download", 0);//TODO
+
+                uBundle.putLong(StringUtil.combine("total_bytes_to_download", resourcePackageName), 0);//TODO
+                ArrayList uArrayList = new ArrayList<>(Arrays.asList(resourcePackageName, chunkName));
+                uBundle.putStringArrayList(StringUtil.combine("slice_ids", resourcePackageName), uArrayList);
+                uBundle.putLong(StringUtil.combine("pack_version", resourcePackageName), version);
+                uBundle.putInt(StringUtil.combine("status", resourcePackageName), status);
+                uBundle.putInt(StringUtil.combine("error_code", resourcePackageName), 0);
+                uBundle.putLong(StringUtil.combine("bytes_downloaded", resourcePackageName), 0);//TODO
+                uBundle.putString(StringUtil.combine("pack_version_tag", resourcePackageName), "");
+                uBundle.putLong(StringUtil.combine("pack_base_version", resourcePackageName), version);
+
+                uBundle.putLong(StringUtil.combine("uncompressed_size", resourcePackageName, chunkName), 0);//TODO
+                uBundle.putInt(StringUtil.combine("compression_format", resourcePackageName, chunkName), 1);
+                uBundle.putParcelableArrayList(StringUtil.combine("chunk_intents", resourcePackageName, chunkName), uArrayList4);
+                uBundle.putString(StringUtil.combine("uncompressed_hash_sha256", resourcePackageName, chunkName), "");//TODO
+
+                uBundle.putLong(StringUtil.combine("uncompressed_size", resourcePackageName, resourcePackageName), 0);//TODO
+                uBundle.putInt(StringUtil.combine("compression_format", resourcePackageName, resourcePackageName), 1);
+                uBundle.putParcelableArrayList(StringUtil.combine("chunk_intents", resourcePackageName, resourcePackageName), new ArrayList<>());
+                uBundle.putString(StringUtil.combine("uncompressed_hash_sha256", resourcePackageName, resourcePackageName), "");//TODO
+                sendBroadCast(bundle);
+            }
+        });
+    }
+
+    private void sendBroadCast(Bundle obj) {
+        Intent intent = new Intent();
+        intent.setAction("com.google.android.play.core.assetpacks.receiver.ACTION_SESSION_UPDATE");
+        intent.putExtra("com.google.android.play.core.assetpacks.receiver.EXTRA_SESSION_STATE", obj);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+        Bundle bundle = new Bundle();
+        bundle.putBoolean("usingExtractorStream", true);
+        intent.putExtra("com.google.android.play.core.FLAGS", bundle);
+        context.sendBroadcast(intent);
     }
 }
