@@ -408,14 +408,12 @@ public class AssetModuleService extends Service {
     private void downloadFile(String packageName, Bundle bundle) {
         String tag = "downloadFile";
         String resourcePackageName = bundle.getString("resourcePackageName");
-        String chunkName = bundle.getString("aaa");
+        String chunkName = bundle.getString("chunkName");
         String resourceLink = bundle.getString("resourceLink");
         long byteLength = bundle.getLong("byteLength");
         String resourceBlockName = bundle.getString("resourceBlockName");
         String Index = String.valueOf(bundle.getInt("index"));
-
         Log.d(tag, "resourceLink:" + resourceLink + ", URL: " + ",byteLength:" + byteLength + ", resourceBlockName:" + resourceBlockName);
-
         String cacheDir = String.valueOf(context.getCacheDir()) + "/" + Index + "/" + resourcePackageName + "/" + chunkName;
         FileDownloader fileDownloader = new FileDownloader(this);
         File destination = new File(cacheDir, resourceBlockName);
