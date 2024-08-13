@@ -152,7 +152,7 @@ public final class AssetModuleRequest extends Request<byte[]> {
         headers.put("x-ps-rh", xPsRh);
         headers.put("User-Agent", "Android-Finsky/42.0.20-23 [0] [PR] 654119317 (api=3,versionCode=84202000,sdk=33,device=coral,hardware=coral,product=coral,platformVersionRelease=13,model=Pixel%204%20XL,buildId=TP1A.221005.002.B2,isWideScreen=0,supportedAbis=arm64-v8a;armeabi-v7a;armeabi)");
         try {
-            headers.put("Authorization", "Bearer " + AccountManager.get(context).getAuthToken(user,tokentype,null,false,null,null).getResult().getString(AccountManager.KEY_AUTHTOKEN));
+            headers.put("Authorization", "Bearer " + AccountManager.get(context).getAuthToken(user, tokentype, null, false, null, null).getResult().getString(AccountManager.KEY_AUTHTOKEN));
         } catch (AuthenticatorException | OperationCanceledException | IOException e) {
             throw new RuntimeException(e);
         }
@@ -190,6 +190,7 @@ public final class AssetModuleRequest extends Request<byte[]> {
 
     public interface VolleyCallback {
         void onSuccess(byte[] result);
+
         void onError(String error);
     }
 }

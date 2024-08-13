@@ -16,8 +16,9 @@ import java.net.URL;
 public class FileDownloader {
 
     public interface ProgressListener {
-//        void onProgress(long totalBytes, long downloadedBytes);
+        //        void onProgress(long totalBytes, long downloadedBytes);
         void onError(Exception e);
+
         void onComplete();
     }
 

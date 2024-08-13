@@ -120,13 +120,12 @@ public class AssetModuleService extends Service {
                     packData.setSessionId(AssetPackStatus.DOWNLOADING);
 
 
-                    for (Bundle c : packData.getBundleList()) {
-                        downloadFile(moduleName, c);
+                    for (Bundle bundle_datas : packData.getBundleList()) {
+                        downloadFile(moduleName, bundle_datas);
                     }
                 }
             }
         }
-
 
 
         @Override
@@ -360,7 +359,7 @@ public class AssetModuleService extends Service {
             session_id = i;
             for (int j = 0; j < fList.size(); j++) {
                 IntermediateIntegrityResponseWrapperExtend.IntermediateIntegrityResponseWrapper.Bbwb fResource = fList.get(j);
-                String aaa = fResource.b.a;
+                String chunkName = fResource.b.a;
                 List<IntermediateIntegrityResponseWrapperExtend.IntermediateIntegrityResponseWrapper.Bbvx> dList = fResource.c.d;
                 for (int x = 0; x < dList.size(); x++) {
                     IntermediateIntegrityResponseWrapperExtend.IntermediateIntegrityResponseWrapper.Bbvx dResource = dList.get(x);
@@ -373,7 +372,7 @@ public class AssetModuleService extends Service {
                     bundle.putString("CacheDir", String.valueOf(context.getCacheDir()));
                     bundle.putInt("index", Integer.parseInt(Index));
                     bundle.putString("resourcePackageName", resourcePackageName);
-                    bundle.putString("aaa", aaa);
+                    bundle.putString("chunkName", chunkName);
                     bundle.putString("resourceLink", resourceLink);
                     bundle.putLong("byteLength", Math.toIntExact(dResource.byteLength));
                     bundle.putString("resourceBlockName", resourceBlockName);
@@ -406,14 +405,14 @@ public class AssetModuleService extends Service {
 
     private void downloadFile(String packageName, Bundle bundle) {
         String resourcePackageName = bundle.getString("resourcePackageName");
-        String chunkName = bundle.getString("aaa");
+        String chunkName = bundle.getString("chunkName");
         String resourceLink = bundle.getString("resourceLink");
         long byteLength = bundle.getLong("byteLength");
         String resourceBlockName = bundle.getString("resourceBlockName");
-        String Index = String.valueOf(bundle.getInt("index"));
+        int Index = bundle.getInt("index");
 
         Log.d("sssss2", "resourceLink:" + resourceLink + ", URL: " + "byteLength:" + byteLength + ", resourceBlockName:" + resourceBlockName);
-        
+
         String cacheDir = String.valueOf(context.getCacheDir()) + "/" + Index + "/" + resourcePackageName + "/" + chunkName;
         FileDownloader fileDownloader = new FileDownloader(this);
         File destination = new File(cacheDir, resourceBlockName);
@@ -439,7 +438,7 @@ public class AssetModuleService extends Service {
                 Bundle uBundle = new Bundle();
                 uBundle.putInt("app_version_code", version);
                 uBundle.putInt("error_code", 0);
-                uBundle.putInt("session_id", 0); //TODO
+                uBundle.putInt("session_id", Index); //TODO
                 uBundle.putInt("status", status);
                 String[] stringArray = new String[]{resourcePackageName};
                 uBundle.putStringArrayList("pack_names", new ArrayList(Arrays.asList(stringArray)));
@@ -465,7 +464,7 @@ public class AssetModuleService extends Service {
                 uBundle.putInt(StringUtil.combine("compression_format", resourcePackageName, resourcePackageName), 1);
                 uBundle.putParcelableArrayList(StringUtil.combine("chunk_intents", resourcePackageName, resourcePackageName), new ArrayList<>());
                 uBundle.putString(StringUtil.combine("uncompressed_hash_sha256", resourcePackageName, resourcePackageName), "");//TODO
-                sendBroadCast(bundle);
+                sendBroadCast(uBundle);
             }
         });
     }
