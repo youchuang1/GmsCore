@@ -13,19 +13,30 @@ jobs:
       GRADLE_MICROG_VERSION_WITHOUT_GIT: 1
 
     steps:
+      - name: "Free disk space"
+        run: |
+          # Deleting unneeded software packages
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo rm -rf /opt/hostedtoolcache/go
+
+          # Log available space
+          df -h
       - name: "Checkout sources"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - name: "Setup Java"
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: "temurin"
           java-version: "17"
-      - name: "Gradle Wrapper validation"
-        uses: gradle/actions/wrapper-validation@v3
       - name: "Setup Gradle"
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v5
+        with:
+          cache-encryption-key: ${{ secrets.GradleEncryptionKey }}
+          build-scan-publish: true
+          build-scan-terms-of-use-url: "https://gradle.com/help/legal-terms-of-use"
+          build-scan-terms-of-use-agree: "yes"
       - name: "Setup matchers"
         run: |
           # Setting up matchers...
@@ -43,8 +54,6 @@ jobs:
               echo "Matcher configured: ${NAME:?}"
             fi
           done
-      - name: "Inspect Gradle tasks"
-        run: "./gradlew tasks"
       - name: "Execute Gradle assemble"
         run: "./gradlew assemble"
       - name: "Execute Gradle check"

@@ -27,13 +27,11 @@ import android.os.Bundle;
 import android.util.Base64;
 import android.util.Log;
 
-import com.google.android.gms.R;
-
 import com.google.android.gms.common.internal.CertData;
 import org.microg.gms.auth.*;
 import org.microg.gms.auth.login.LoginActivity;
 import org.microg.gms.common.PackageUtils;
-import org.microg.gms.utils.ExtendedPackageInfo;
+import org.microg.gms.auth.AuthResponse;
 import org.microg.gms.utils.PackageManagerUtilsKt;
 
 import java.util.Arrays;
@@ -131,7 +129,7 @@ public class AccountAuthenticator extends AbstractAccountAuthenticator {
             authManager = new AuthManager(context, account.name, app, authTokenType);
         }
         try {
-            AuthResponse res = authManager.requestAuth(true);
+            AuthResponse res = authManager.requestAuthWithBackgroundResolution(true);
             if (res.auth != null) {
                 Log.d(TAG, "getAuthToken: " + res.auth);
                 Bundle result = new Bundle();
@@ -184,6 +182,9 @@ public class AccountAuthenticator extends AbstractAccountAuthenticator {
             List<String> servicesList = Arrays.asList(services.split(","));
             for (String feature : features) {
                 if (feature.startsWith("service_") && !servicesList.contains(feature.substring(8))) {
+                    Log.d(TAG, "Feature " + feature + " not supported");
+                    res = false;
+                } else if (!feature.startsWith("service_") && !servicesList.contains(feature)) {
                     Log.d(TAG, "Feature " + feature + " not supported");
                     res = false;
                 }

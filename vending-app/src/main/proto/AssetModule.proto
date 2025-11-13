@@ -1,170 +1,75 @@
-syntax = "proto3";
-
-option java_package = "com.android.vending";
+option java_package = "com.google.android.finsky";
 option java_multiple_files = true;
 
 import "Timestamp.proto";
 
-
-
 message AssetModuleDeliveryRequest {
-  optional string pkgname = 1;
-  optional Bbvz c = 2;
+  optional string packageName = 1;
+  optional CallerInfo callerInfo = 2;
   optional uint32 playCoreVersion = 3;
-  repeated Bdpo supportedCompressionFormats = 4;
-  repeated Bdpp supportedPatchFormats = 5;
-  repeated Bcmf requestedAssetModules = 6;
-  optional bool isInstantApp = 8;
+  repeated uint32 supportedCompressionFormats = 4;
+  repeated uint32 supportedPatchFormats = 5;
+  repeated AssetModuleInfo modules = 6;
+  optional bool isInstantApp = 7;
 }
 
-message Bbvz {
-  oneof c {
-    int32 oneofField1 = 1;
-    string oneofField3 = 3;
+message CallerInfo {
+  oneof Version {
+    int64 appVersionCode = 1;
+    string internalSharingId = 3;
   }
-  optional int32 d = 2;
 }
 
-// Bcmf 消息
-message Bcmf {
-  optional string b = 1;
-  optional int64 c = 2;
+message AssetModuleInfo {
+  optional string name = 1;
+  optional int64 type = 2;
 }
 
-enum Bdpp {
-  UNKNOWN_SECURITY_CHECK_TYPE = 0;
-  CALLER_APP_REQUEST = 1;
-  CALLER_APP_DEBUGGABLE = 2;
-  CALLER_APP_INTENT_HANDLING_PACKAGE_MISSING = 3;
-  CALLER_APP_INSTALLER_PACKAGE_NAME_UNKNOWN = 4;
-  CALLER_APP_INSTALLER_PACKAGE_NAME_3P = 5;
-  CALLER_APP_INSTALLED_CERTIFICATE_MISSING = 6;
-  CALLER_APP_CERTIFICATE_UNMATCHED = 7;
+message AssetModuleDeliveryResponse {
+  optional ModuleDeliveryWrapper wrapper = 1;
 }
 
-enum Bdpo {
-  UNKNOWN_SEARCH_TRAFFIC_SOURCE = 0;
-  GAMES_HOME_PAGE = 1;
-  APPS_HOME_PAGE = 2;
-  BOOKS_HOME_PAGE = 3;
-  FAMILY_HOME_PAGE = 4;
-  KIDS_HOME_PAGE = 5;
-  PLAY_PASS_HOME_PAGE = 6;
-  NOW_HOME_PAGE = 7;
-  DEALS_HOME_PAGE = 8;
-  SEARCH_HOME_PAGE = 9;
-  DETAILS_PAGE = 10;
-  APPS_SEARCH_PAGE = 11;
-  EBOOKS_SEARCH_PAGE = 12;
-  DEEP_LINK_SEARCH = 13;
-  TABBED_BROWSE_FRAGMENT_HOME_PAGE = 14;
-  DETAILS_PAGE_TOOLBAR = 15;
-  UNKNOWN_SEARCH_TRAFFIC_SOURCE_CAR = 16;
-  LOYALTY_HOME_PAGE = 17;
+message ModuleDeliveryWrapper {
+  optional ModuleDeliveryInfo deliveryInfo = 151;
 }
 
-message IntermediateIntegrityResponseWrapperExtend {
-  message IntermediateIntegrityResponseWrapper {
-    message AssetModuleDeliveryResponse {
-      repeated Bbvy resourceList = 3;
-      optional int32 resourceStatus = 4;
-    }
+message ModuleDeliveryInfo {
+  repeated ModuleInfo modules = 3;
+  optional int32 status = 4;
+}
 
-    message Bbvy {
-      optional string resourcePackageName = 1;
-      optional int64 versionNumber = 2;
-      repeated Bbwb f = 3;
-      optional int64 c = 4;
-      optional string e = 5;
-    }
+message ModuleInfo {
+  optional string moduleName = 1;
+  optional int64 packVersion = 2;
+  repeated SliceInfo slices = 3;
+  optional int64 packBaseVersion = 4;
+  optional string packVersionTag = 5;
+}
 
-    message Bbwb {
-      optional Bcpw b = 1;
-      optional Bbwc c = 2;
-      optional Bbwd d = 3;
-    }
+message SliceInfo {
+  optional SliceMetadata metadata = 1;
+  optional FullDownloadInfo fullDownloadInfo = 2;
+  optional PatchInfo patchInfo = 3;
+}
 
-    message Bcpw {
-      optional string a = 1;
-    }
+message SliceMetadata {
+  optional string sliceId = 1;
+}
 
-    message Bbwc {
-      optional int64 a = 1;
-      optional string b = 2;
-      optional Bdph c = 3;
-      repeated Bbvx d = 4;
-    }
+message FullDownloadInfo {
+  optional int64 uncompressedSize = 1;
+  optional string uncompressedHashSha256 = 2;
+  optional uint32 compressionFormat = 3;
+  repeated ChunkInfo chunks = 4;
+}
 
-    message Bbvx {
-      optional int64 byteLength = 1;
-      optional string uncompressed = 2;
-      optional string resourceLink = 3;
-    }
+message PatchInfo {
+  optional uint32 patchFormat = 1;
+  repeated ChunkInfo chunks = 2;
+}
 
-    message Bbwd {
-      optional Bdpn a = 3;
-      repeated Bbvx b = 4;
-    }
-
-    enum Bdph {
-      UNKNOWN_SEARCH_TRAFFIC_SOURCE = 0;
-      GAMES_HOME_PAGE = 1;
-      APPS_HOME_PAGE = 2;
-      BOOKS_HOME_PAGE = 3;
-      FAMILY_HOME_PAGE = 4;
-      KIDS_HOME_PAGE = 5;
-      PLAY_PASS_HOME_PAGE = 6;
-      NOW_HOME_PAGE = 7;
-      DEALS_HOME_PAGE = 8;
-      SEARCH_HOME_PAGE = 9;
-      DETAILS_PAGE = 10;
-      APPS_SEARCH_PAGE = 11;
-      EBOOKS_SEARCH_PAGE = 12;
-      DEEP_LINK_SEARCH = 13;
-      TABBED_BROWSE_FRAGMENT_HOME_PAGE = 14;
-      DETAILS_PAGE_TOOLBAR = 15;
-      UNKNOWN_SEARCH_TRAFFIC_SOURCE_CAR = 16;
-      LOYALTY_HOME_PAGE = 17;
-    }
-
-    enum Bdpn {
-      UNKNOWN_SECURITY_CHECK_TYPE = 0;
-      CALLER_APP_REQUEST = 1;
-      CALLER_APP_DEBUGGABLE = 2;
-      CALLER_APP_INTENT_HANDLING_PACKAGE_MISSING = 3;
-      CALLER_APP_INSTALLER_PACKAGE_NAME_UNKNOWN = 4;
-      CALLER_APP_INSTALLER_PACKAGE_NAME_3P = 5;
-      CALLER_APP_INSTALLED_CERTIFICATE_MISSING = 6;
-      CALLER_APP_CERTIFICATE_UNMATCHED = 7;
-    }
-
-    optional AssetModuleDeliveryResponse assetModuleDeliveryResponse = 151;
-  }
-  optional IntermediateIntegrityResponseWrapper intermediateIntegrityResponseWrapper = 1;
-
-  optional message5 x = 5;
-  optional message9 y = 9;
-
-
-  message message5 {
-    uint32 field1 = 1;
-  }
-
-  message message9 {
-    uint32 field1 = 1;
-    optional nestedMessage nested = 19;
-
-    message nestedMessage {
-      optional field11 s = 1;
-      uint32 field4 = 2;
-      uint32 field5 = 4;
-      string field6 = 5;
-    }
-    message field11{
-      uint64 a = 1;
-      fixed32 b = 2;
-      fixed32 c = 3;
-    }
-
-  }
+message ChunkInfo {
+  optional int64 bytesToDownload = 1;
+  optional string sha256 = 2;
+  optional string sourceUri = 3;
 }

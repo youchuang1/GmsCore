@@ -26,6 +26,7 @@ import android.content.pm.Signature;
 import android.os.Binder;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import org.microg.gms.utils.ExtendedPackageInfo;
 
@@ -36,7 +37,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import static android.os.Build.VERSION.SDK_INT;
-import static org.microg.gms.common.Constants.GMS_PACKAGE_NAME;
 import static org.microg.gms.common.Constants.GMS_PACKAGE_SIGNATURE_SHA1;
 import static org.microg.gms.common.Constants.GMS_SECONDARY_PACKAGE_SIGNATURE_SHA1;
 
@@ -49,7 +49,8 @@ public class PackageUtils {
     private static final String[] GOOGLE_PRIMARY_KEYS = {GOOGLE_PLATFORM_KEY, GOOGLE_PLATFORM_KEY_2, GOOGLE_APP_KEY};
 
     @Deprecated
-    public static boolean isGooglePackage(Context context, String packageName) {
+    public static boolean isGooglePackage(@NonNull Context context, @Nullable String packageName) {
+        if (packageName == null) return false;
         return new ExtendedPackageInfo(context, packageName).isGoogleOrPlatformPackage();
     }
 
@@ -57,11 +58,11 @@ public class PackageUtils {
      * @deprecated Extended access is a deprecated concept
      */
     @Deprecated
-    public static boolean callerHasExtendedAccessPermission(Context context) {
+    public static boolean callerHasExtendedAccessPermission(@NonNull Context context) {
         return context.checkCallingPermission("org.microg.gms.EXTENDED_ACCESS") == PackageManager.PERMISSION_GRANTED;
     }
 
-    public static void assertGooglePackagePermission(Context context, GooglePackagePermission permission) {
+    public static void assertGooglePackagePermission(@NonNull Context context, GooglePackagePermission permission) {
         try {
             if (!callerHasGooglePackagePermission(context, permission))
                 throw new SecurityException("Access denied, missing google package permission for " + permission.name());
@@ -71,7 +72,7 @@ public class PackageUtils {
         }
     }
 
-    public static boolean callerHasGooglePackagePermission(Context context, GooglePackagePermission permission) {
+    public static boolean callerHasGooglePackagePermission(@NonNull Context context, GooglePackagePermission permission) {
         for (String packageCandidate : getCallingPackageCandidates(context)) {
             if (new ExtendedPackageInfo(context, packageCandidate).hasGooglePackagePermission(permission)) {
                 return true;
@@ -84,7 +85,7 @@ public class PackageUtils {
         return false;
     }
 
-    public static void checkPackageUid(Context context, String packageName, int callingUid) {
+    public static void checkPackageUid(@NonNull Context context, @NonNull String packageName, int callingUid) {
         getAndCheckPackage(context, packageName, callingUid, 0);
     }
 
@@ -93,8 +94,8 @@ public class PackageUtils {
      */
     @Deprecated
     @Nullable
-    public static String firstSignatureDigest(Context context, String packageName) {
-        return firstSignatureDigest(context.getPackageManager(), packageName);
+    public static String firstSignatureDigest(@NonNull Context context, @Nullable String packageName) {
+        return firstSignatureDigest(context, packageName, false);
     }
 
     /**
@@ -102,22 +103,8 @@ public class PackageUtils {
      */
     @Deprecated
     @Nullable
-    public static String firstSignatureDigest(PackageManager packageManager, String packageName) {
-        final PackageInfo info;
-        try {
-            info = packageManager.getPackageInfo(packageName, PackageManager.GET_SIGNATURES);
-        } catch (PackageManager.NameNotFoundException e) {
-            return null;
-        }
-        if (info != null && info.signatures != null && info.signatures.length > 0) {
-            for (Signature sig : info.signatures) {
-                String digest = sha1sum(sig.toByteArray());
-                if (digest != null) {
-                    return digest;
-                }
-            }
-        }
-        return null;
+    public static String firstSignatureDigest(@NonNull Context context, @Nullable String packageName, boolean useSigningInfo) {
+        return firstSignatureDigest(context.getPackageManager(), packageName, useSigningInfo);
     }
 
     /**
@@ -125,7 +112,25 @@ public class PackageUtils {
      */
     @Deprecated
     @Nullable
-    public static byte[] firstSignatureDigestBytes(Context context, String packageName) {
+    public static String firstSignatureDigest(@NonNull PackageManager packageManager, @Nullable String packageName) {
+        return firstSignatureDigest(packageManager, packageName, false);
+    }
+
+    /**
+     * @deprecated We should stop using SHA-1 for certificate fingerprints!
+     */
+    @Deprecated
+    @Nullable
+    public static String firstSignatureDigest(@NonNull PackageManager packageManager, String packageName, boolean useSigningInfo) {
+        return bytesToSumString(firstSignatureDigestBytes(packageManager, packageName, useSigningInfo));
+    }
+
+    /**
+     * @deprecated We should stop using SHA-1 for certificate fingerprints!
+     */
+    @Deprecated
+    @Nullable
+    public static byte[] firstSignatureDigestBytes(@NonNull Context context, @Nullable String packageName) {
         return firstSignatureDigestBytes(context.getPackageManager(), packageName);
     }
 
@@ -134,14 +139,35 @@ public class PackageUtils {
      */
     @Deprecated
     @Nullable
-    public static byte[] firstSignatureDigestBytes(PackageManager packageManager, String packageName) {
+    public static byte[] firstSignatureDigestBytes(@NonNull PackageManager packageManager, @Nullable String packageName) {
+        return firstSignatureDigestBytes(packageManager, packageName, false);
+    }
+
+    /**
+     * @deprecated We should stop using SHA-1 for certificate fingerprints!
+     */
+    @Deprecated
+    @Nullable
+    public static byte[] firstSignatureDigestBytes(@NonNull PackageManager packageManager, @Nullable String packageName, boolean useSigningInfo) {
+        if (packageName == null) return null;
         final PackageInfo info;
         try {
-            info = packageManager.getPackageInfo(packageName, PackageManager.GET_SIGNATURES);
+            info = packageManager.getPackageInfo(packageName, PackageManager.GET_SIGNATURES | (useSigningInfo && SDK_INT >= 28 ? PackageManager.GET_SIGNING_CERTIFICATES : 0));
         } catch (PackageManager.NameNotFoundException e) {
             return null;
         }
-        if (info != null && info.signatures != null && info.signatures.length > 0) {
+        if (info == null) return null;
+        if (SDK_INT >= 28 && useSigningInfo && info.signingInfo != null) {
+            if (!info.signingInfo.hasMultipleSigners()) {
+                for (Signature sig : info.signingInfo.getSigningCertificateHistory()) {
+                    byte[] digest = sha1bytes(sig.toByteArray());
+                    if (digest != null) {
+                        return digest;
+                    }
+                }
+            }
+        }
+        if (info.signatures != null) {
             for (Signature sig : info.signatures) {
                 byte[] digest = sha1bytes(sig.toByteArray());
                 if (digest != null) {
@@ -153,7 +179,7 @@ public class PackageUtils {
     }
 
     @Nullable
-    public static String getCallingPackage(Context context) {
+    public static String getCallingPackage(@NonNull Context context) {
         int callingUid = Binder.getCallingUid(), callingPid = Binder.getCallingPid();
         String packageName = packageFromProcessId(context, callingPid);
         if (packageName == null) {
@@ -162,7 +188,7 @@ public class PackageUtils {
         return packageName;
     }
 
-    public static String[] getCallingPackageCandidates(Context context) {
+    public static String[] getCallingPackageCandidates(@NonNull Context context) {
         int callingUid = Binder.getCallingUid(), callingPid = Binder.getCallingPid();
         String packageName = packageFromProcessId(context, callingPid);
         if (packageName != null) return new String[]{packageName};
@@ -172,12 +198,12 @@ public class PackageUtils {
     }
 
     @Nullable
-    public static String getAndCheckCallingPackage(Context context, String suggestedPackageName) {
+    public static String getAndCheckCallingPackage(@NonNull Context context, @Nullable String suggestedPackageName) {
         return getAndCheckCallingPackage(context, suggestedPackageName, 0);
     }
 
     @Nullable
-    public static String getAndCheckCallingPackageOrImpersonation(Context context, String suggestedPackageName) {
+    public static String getAndCheckCallingPackageOrImpersonation(@NonNull Context context, @Nullable String suggestedPackageName) {
         try {
             return getAndCheckCallingPackage(context, suggestedPackageName, 0);
         } catch (Exception e) {
@@ -189,17 +215,17 @@ public class PackageUtils {
     }
 
     @Nullable
-    public static String getAndCheckCallingPackage(Context context, int suggestedCallerUid) {
+    public static String getAndCheckCallingPackage(@NonNull Context context, int suggestedCallerUid) {
         return getAndCheckCallingPackage(context, null, suggestedCallerUid);
     }
 
     @Nullable
-    public static String getAndCheckCallingPackage(Context context, String suggestedPackageName, int suggestedCallerUid) {
+    public static String getAndCheckCallingPackage(@NonNull Context context, @Nullable String suggestedPackageName, int suggestedCallerUid) {
         return getAndCheckCallingPackage(context, suggestedPackageName, suggestedCallerUid, 0);
     }
 
     @Nullable
-    public static String getAndCheckCallingPackage(Context context, String suggestedPackageName, int suggestedCallerUid, int suggestedCallerPid) {
+    public static String getAndCheckCallingPackage(@NonNull Context context, @Nullable String suggestedPackageName, int suggestedCallerUid, int suggestedCallerPid) {
         int callingUid = Binder.getCallingUid(), callingPid = Binder.getCallingPid();
         if (suggestedCallerUid > 0 && suggestedCallerUid != callingUid) {
             throw new SecurityException("suggested UID [" + suggestedCallerUid + "] and real calling UID [" + callingUid + "] mismatch!");
@@ -216,7 +242,7 @@ public class PackageUtils {
     }
 
     @Nullable
-    public static String getAndCheckPackage(Context context, String suggestedPackageName, int callingUid, int callingPid) {
+    public static String getAndCheckPackage(@NonNull Context context, @Nullable String suggestedPackageName, int callingUid, int callingPid) {
         String packageName = packageFromProcessId(context, callingPid);
         if (packageName == null) {
             String[] packagesForUid = context.getPackageManager().getPackagesForUid(callingUid);
@@ -238,7 +264,7 @@ public class PackageUtils {
 
     @Nullable
     @Deprecated
-    public static String packageFromProcessId(Context context, int pid) {
+    public static String packageFromProcessId(@NonNull Context context, int pid) {
         ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
         if (manager == null) return null;
         if (pid <= 0) return null;
@@ -254,7 +280,7 @@ public class PackageUtils {
     }
 
     @Nullable
-    public static String firstPackageFromUserId(Context context, int uid) {
+    public static String firstPackageFromUserId(@NonNull Context context, int uid) {
         String[] packagesForUid = context.getPackageManager().getPackagesForUid(uid);
         if (packagesForUid != null && packagesForUid.length != 0) {
             return packagesForUid[0];
@@ -263,7 +289,7 @@ public class PackageUtils {
     }
 
     @SuppressWarnings("deprecation")
-    public static String packageFromPendingIntent(PendingIntent pi) {
+    public static String packageFromPendingIntent(@Nullable PendingIntent pi) {
         if (pi == null) return null;
         if (SDK_INT < 17) {
             return pi.getTargetPackage();
@@ -320,23 +346,17 @@ public class PackageUtils {
      */
     @Deprecated
     public static String sha1sum(byte[] bytes) {
-        MessageDigest md;
-        try {
-            md = MessageDigest.getInstance("SHA1");
-        } catch (final NoSuchAlgorithmException e) {
-            return null;
+        return bytesToSumString(sha1bytes(bytes));
+    }
+
+    @Nullable
+    private static String bytesToSumString(@Nullable byte[] bytes) {
+        if (bytes == null) return null;
+        StringBuilder sb = new StringBuilder(2 * bytes.length);
+        for (byte b : bytes) {
+            sb.append(String.format("%02x", b));
         }
-        if (md != null) {
-            bytes = md.digest(bytes);
-            if (bytes != null) {
-                StringBuilder sb = new StringBuilder(2 * bytes.length);
-                for (byte b : bytes) {
-                    sb.append(String.format("%02x", b));
-                }
-                return sb.toString();
-            }
-        }
-        return null;
+        return sb.toString();
     }
 
     /**

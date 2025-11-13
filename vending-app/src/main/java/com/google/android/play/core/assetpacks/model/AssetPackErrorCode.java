@@ -1,77 +1,85 @@
+/*
+ * SPDX-FileCopyrightText: 2024 microG Project Team
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.google.android.play.core.assetpacks.model;
 
+import android.app.Activity;
+import androidx.annotation.IntDef;
+import com.google.android.play.core.assetpacks.AssetPackManager;
+
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * 表示资源包错误代码的注解。
- * 该注解的值表示资源包操作过程中可能出现的错误类型。
+ * Error codes for the download of an asset pack.
  */
+@Target({ElementType.TYPE_USE})
 @Retention(RetentionPolicy.CLASS)
+@IntDef({AssetPackErrorCode.NO_ERROR, AssetPackErrorCode.APP_UNAVAILABLE, AssetPackErrorCode.PACK_UNAVAILABLE, AssetPackErrorCode.INVALID_REQUEST, AssetPackErrorCode.DOWNLOAD_NOT_FOUND, AssetPackErrorCode.API_NOT_AVAILABLE, AssetPackErrorCode.NETWORK_ERROR, AssetPackErrorCode.ACCESS_DENIED, AssetPackErrorCode.INSUFFICIENT_STORAGE, AssetPackErrorCode.APP_NOT_OWNED, AssetPackErrorCode.PLAY_STORE_NOT_FOUND, AssetPackErrorCode.NETWORK_UNRESTRICTED, AssetPackErrorCode.CONFIRMATION_NOT_REQUIRED, AssetPackErrorCode.UNRECOGNIZED_INSTALLATION, AssetPackErrorCode.INTERNAL_ERROR})
 public @interface AssetPackErrorCode {
-
+    int NO_ERROR = 0;
     /**
-     * 访问被拒绝。可能是由于权限问题。
+     * The requesting app is unavailable.
      */
-    public static final int ACCESS_DENIED = -7;
-
+    int APP_UNAVAILABLE = -1;
     /**
-     * API 不可用。可能是由于不支持的设备或操作系统版本。
+     * The requested asset pack isn't available.
+     * <p>
+     * This can happen if the asset pack wasn't included in the Android App Bundle that was published to the Play Store.
      */
-    public static final int API_NOT_AVAILABLE = -5;
-
+    int PACK_UNAVAILABLE = -2;
     /**
-     * 应用未被拥有。用户没有购买或安装该应用。
+     * The request is invalid.
      */
-    public static final int APP_NOT_OWNED = -13;
-
+    int INVALID_REQUEST = -3;
     /**
-     * 应用不可用。可能是由于应用在当前区域不可用。
+     * The requested download isn't found.
      */
-    public static final int APP_UNAVAILABLE = -1;
-
+    int DOWNLOAD_NOT_FOUND = -4;
     /**
-     * 不需要确认。表示操作不需要用户确认。
+     * The Asset Delivery API isn't available.
      */
-    public static final int CONFIRMATION_NOT_REQUIRED = -14;
-
+    int API_NOT_AVAILABLE = -5;
     /**
-     * 下载未找到。可能是由于下载信息丢失或被删除。
+     * Network error. Unable to obtain the asset pack details.
      */
-    public static final int DOWNLOAD_NOT_FOUND = -4;
-
+    int NETWORK_ERROR = -6;
     /**
-     * 存储空间不足。设备上没有足够的存储空间进行操作。
+     * Download not permitted under the current device circumstances (e.g. in background).
      */
-    public static final int INSUFFICIENT_STORAGE = -10;
-
+    int ACCESS_DENIED = -7;
     /**
-     * 内部错误。可能是由于未知的系统或应用内部错误。
+     * Asset pack download failed due to insufficient storage.
      */
-    public static final int INTERNAL_ERROR = -100;
-
+    int INSUFFICIENT_STORAGE = -10;
     /**
-     * 无效请求。可能是由于请求参数不正确。
+     * The Play Store app is either not installed or not the official version.
      */
-    public static final int INVALID_REQUEST = -3;
-
+    int PLAY_STORE_NOT_FOUND = -11;
     /**
-     * 网络错误。可能是由于网络连接问题。
+     * Returned if {@link AssetPackManager#showCellularDataConfirmation(Activity)} is called but no asset packs are
+     * waiting for Wi-Fi.
      */
-    public static final int NETWORK_ERROR = -6;
-
+    int NETWORK_UNRESTRICTED = -12;
     /**
-     * 没有错误。操作成功完成。
+     * The app isn't owned by any user on this device. An app is "owned" if it has been installed via the Play Store.
      */
-    public static final int NO_ERROR = 0;
-
+    int APP_NOT_OWNED = -13;
     /**
-     * 资源包不可用。可能是由于资源包在当前区域不可用。
+     * Returned if {@link AssetPackManager#showConfirmationDialog(Activity)} is called but no asset packs require user
+     * confirmation.
      */
-    public static final int PACK_UNAVAILABLE = -2;
-
+    int CONFIRMATION_NOT_REQUIRED = -14;
     /**
-     * 无法识别的安装。可能是由于安装包损坏或被篡改。
+     * The installed app version is not recognized by Play. This can happen if the app was not installed by Play.
      */
-    public static final int UNRECOGNIZED_INSTALLATION = -15;
+    int UNRECOGNIZED_INSTALLATION = -15;
+    /**
+     * Unknown error downloading an asset pack.
+     */
+    int INTERNAL_ERROR = -100;
 }

@@ -1,27 +1,22 @@
+/*
+ * SPDX-FileCopyrightText: 2024 microG Project Team
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.google.android.play.core.assetpacks.model;
 
+import androidx.annotation.IntDef;
+
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-/**
- * 表示资源包更新可用性的注解。
- * 该注解的值表示资源包更新的状态。
- */
+@Target({ElementType.TYPE_USE})
 @Retention(RetentionPolicy.CLASS)
+@IntDef({AssetPackUpdateAvailability.UNKNOWN, AssetPackUpdateAvailability.UPDATE_NOT_AVAILABLE, AssetPackUpdateAvailability.UPDATE_AVAILABLE})
 public @interface AssetPackUpdateAvailability {
-
-    /**
-     * 状态未知。可能是由于无法获取更新信息。
-     */
-    public static final int UNKNOWN = 0;
-
-    /**
-     * 有更新可用。表示存在可用的资源包更新。
-     */
-    public static final int UPDATE_AVAILABLE = 2;
-
-    /**
-     * 没有更新可用。表示当前资源包已经是最新版本。
-     */
-    public static final int UPDATE_NOT_AVAILABLE = 1;
+    int UNKNOWN = 0;
+    int UPDATE_NOT_AVAILABLE = 1;
+    int UPDATE_AVAILABLE = 2;
 }

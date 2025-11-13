@@ -1,51 +1,71 @@
+/*
+ * SPDX-FileCopyrightText: 2024 microG Project Team
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.google.android.play.core.assetpacks.model;
 
+import android.app.Activity;
+import androidx.annotation.IntDef;
+import com.google.android.play.core.assetpacks.AssetPackManager;
+
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * 表示资源包状态的注解。
+ * Status of the download of an asset pack.
  */
+@Target({ElementType.TYPE_USE})
 @Retention(RetentionPolicy.CLASS)
+@IntDef({AssetPackStatus.UNKNOWN, AssetPackStatus.PENDING, AssetPackStatus.DOWNLOADING, AssetPackStatus.TRANSFERRING, AssetPackStatus.COMPLETED, AssetPackStatus.FAILED, AssetPackStatus.CANCELED, AssetPackStatus.WAITING_FOR_WIFI, AssetPackStatus.NOT_INSTALLED, AssetPackStatus.REQUIRES_USER_CONFIRMATION})
 public @interface AssetPackStatus {
     /**
-     * 资源包下载已取消
+     * The asset pack state is unknown.
      */
-    public static final int CANCELED = 6;
+    int UNKNOWN = 0;
     /**
-     * 资源包下载已完成
+     * The asset pack download is pending and will be processed soon.
      */
-    public static final int COMPLETED = 4;
+    int PENDING = 1;
     /**
-     * 资源包正在下载
+     * The asset pack download is in progress.
      */
-    public static final int DOWNLOADING = 2;
+    int DOWNLOADING = 2;
     /**
-     * 资源包下载失败
+     * The asset pack is being decompressed and copied (or patched) to the app's internal storage.
      */
-    public static final int FAILED = 5;
+    int TRANSFERRING = 3;
     /**
-     * 资源包未安装
+     * The asset pack download and transfer is complete; the assets are available to the app.
      */
-    public static final int NOT_INSTALLED = 8;
+    int COMPLETED = 4;
     /**
-     * 资源包等待下载
+     * The asset pack download or transfer has failed.
      */
-    public static final int PENDING = 1;
+    int FAILED = 5;
     /**
-     * 资源包需要用户确认
+     * The asset pack download has been canceled by the user through the Play Store or the download notification.
      */
-    public static final int REQUIRES_USER_CONFIRMATION = 9;
+    int CANCELED = 6;
     /**
-     * 资源包正在传输
+     * The asset pack download is waiting for Wi-Fi to become available before proceeding.
+     * <p>
+     * The app can ask the user to download a session that is waiting for Wi-Fi over cellular data by using
+     * {@link AssetPackManager#showCellularDataConfirmation(Activity)}.
      */
-    public static final int TRANSFERRING = 3;
+    int WAITING_FOR_WIFI = 7;
     /**
-     * 资源包状态未知
+     * The asset pack is not installed.
      */
-    public static final int UNKNOWN = 0;
+    int NOT_INSTALLED = 8;
     /**
-     * 资源包等待WiFi连接
+     * The asset pack requires user consent to be downloaded.
+     * <p>
+     * This can happen if the current app version was not installed by Play.
+     * <p>
+     * If the asset pack is also waiting for Wi-Fi, this state takes precedence.
      */
-    public static final int WAITING_FOR_WIFI = 7;
+    int REQUIRES_USER_CONFIRMATION = 9;
 }
